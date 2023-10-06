@@ -1,15 +1,15 @@
 import * as Phaser from 'phaser';
-import { Starfield } from './Starfield';
-import { MainScene } from './MainScene';
+import { SceneStarfield } from './SceneStarfield';
+import { SceneMain } from './SceneMain';
 
 
 const config: Phaser.Types.Core.GameConfig =
 {
     type: Phaser.AUTO,
-    width: 400,
-    height: 400,
+    width: 800,
+    height: 600,
     backgroundColor: 0x000000,
-    scene: [ Starfield, MainScene ],
+    scene: [ SceneStarfield, SceneMain ],
     physics: {
         default: "arcade",
         arcade: {

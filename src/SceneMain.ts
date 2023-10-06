@@ -1,24 +1,21 @@
 import * as Phaser from 'phaser';
 import { Global } from './Global';
 import { Player } from './Player';
-import { Bullets } from './Bullets';
-import { Bullet } from './Bullets';
-import { Enemies } from './Enemies';
-import { Enemy } from './Enemies';
-import { Modules } from './Modules';
-import { Module } from './Modules';
+import { Bullets, Bullet } from './Bullets';
+import { Enemies, Enemy } from './Enemies';
+import { Modules, Module } from './Modules';
 
-export class MainScene extends Phaser.Scene {
+export class SceneMain extends Phaser.Scene {
     player: Player;
     enemies: Enemies;
     text: Phaser.GameObjects.Text;
 
     constructor() {
-        super({ key: 'MainScene', active: true });
+        super({ key: 'SceneMain', active: true });
     }
 
     preload() {
-        this.load.image('player', 'assets/ship.png');
+        this.load.image('structure', 'assets/structure.png');
         this.load.image('bullet', 'assets/bullet.png');
         this.load.spritesheet('modules', 'assets/modules.png', { frameWidth: 8, frameHeight: 8 });
 

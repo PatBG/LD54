@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 
-export class Starfield extends Phaser.Scene {
+export class SceneStarfield extends Phaser.Scene {
 
     stars: Phaser.GameObjects.Blitter;
     distance_min = 300;
