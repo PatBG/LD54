@@ -1,30 +1,37 @@
 import * as Phaser from 'phaser';
 import { Global } from './Global';
 
+export enum ModuleType {
+    Merchandise,
+    Cannon,
+    Shield,
+}
+
 export class Module extends Phaser.Physics.Arcade.Sprite {
-    moduleFrame: number;
+    moduleType: ModuleType;
+    level = 1;
     fireRate = 5;              // Number of fire per seconds 
     fireDuration = 0;           // Internal timer for fire rate management
     bulletVelocity = 500;
 
-    constructor(scene, x, y, key, moduleFrame) {
-        super(scene, x, y, key, moduleFrame);
-        this.moduleFrame = moduleFrame;
-        console.log(`module.constructor(${this.moduleFrame}) at (${this.x},${this.y})`);
+    constructor(scene: Phaser.Scene, x: number, y: number, key: string, moduleType: ModuleType) {
+        super(scene, x, y, key, moduleType);
+        this.moduleType = moduleType;
+        console.log(`module.constructor(${this.moduleType}) at (${this.x},${this.y})`);
     }
 
     onCreate() {
     }
 
     onHit() {
-        console.log(`module(${this.moduleFrame}) hit at (${this.x},${this.y})`);
+        console.log(`module(${this.moduleType}) hit at (${this.x},${this.y})`);
         this.destroy();
     }
 
     update() {
         // console.log(`module.update(${this.moduleFrame}) at (${this.x},${this.y})`);
-        if (this.moduleFrame == 1) {
-            console.log(`module(${this.moduleFrame}) Fire at (${this.x},${this.y})`);
+        if (this.moduleType == ModuleType.Cannon) {
+            console.log(`module(${this.moduleType}) Fire at (${this.x},${this.y})`);
 
             // Fire bullets
             if (Global.cursorKeys.shift.isDown) {
@@ -50,7 +57,7 @@ export class Modules extends Phaser.Physics.Arcade.Group {
     }
 
     newModule(x: number, y: number, moduleFrame: number) {
-        return this.create(x, y, 'modules', moduleFrame)
+        return this.create(x * 10, y * 12, 'modules', moduleFrame)
     }
 
     onCreate(module: Module) {
