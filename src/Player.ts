@@ -41,14 +41,6 @@ export class Player extends Phaser.GameObjects.Container {
         this.add(this.modules.newModule(2, 2, ModuleType.Cannon));
     }
 
-    newStructure(x: number, y: number) {
-        return this.scene.add.image(x * 10, y * 12, 'structure')
-    }
-
-    getStructure(x: number, y: number) {
-        
-    }
-
     update(time, delta) {
         this.modules.update();
 
@@ -72,5 +64,42 @@ export class Player extends Phaser.GameObjects.Container {
         else {
             this.body.velocity.y = 0;
         }
+
+        // this.hackUnitTest();
+    }
+
+    hackFirstCall = true;
+    hackUnitTest() {                                    // HACK: unit test
+        if (this.hackFirstCall) { 
+            this.hackFirstCall = false;
+            for (let x = -2; x <= 2; x++) {             // Unit test : isStructure() and getModule()
+                for (let y = 0; y <= 3; y++) {
+                    console.log(`Structure [${x},${y}]=${this.isStructure(x, y)}`);
+                    const module = this.modules.getModule(x, y);
+                    console.log(`Modules [${x},${y}]=${(module === undefined) ? "undefined" : ModuleType[module.moduleType]}`);
+                }
+            }
+        }
+    }
+
+    newStructure(x: number, y: number) {
+        return this.scene.add.image(x * 10, y * 12, 'structure')
+    }
+
+    isStructure(x: number, y: number) {
+        let isFound = false;
+        this.each(
+            (image: Phaser.GameObjects.Image) => {
+                const xx = image.x / 10;
+                const yy = image.y / 12;
+                if (x == xx && y == yy) {
+                    if (image.texture.key === 'structure') {
+                        // console.log(`getStructure(${x},${y}) ${xx} ${yy} ${image.texture.key} TRUE`);
+                        isFound = true;
+                    }
+                }
+            },
+            this);
+        return isFound;
     }
 }
