@@ -17,22 +17,18 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, moduleType: ModuleType) {
         super(scene, x, y, key, moduleType);
         this.moduleType = moduleType;
-        console.log(`module.constructor(${this.moduleType}) at (${this.x},${this.y})`);
     }
 
     onCreate() {
     }
 
     onHit() {
-        console.log(`module(${this.moduleType}) hit at (${this.x},${this.y})`);
+        // console.log(`module(${this.moduleType}) hit at (${this.x},${this.y})`);
         this.destroy();
     }
 
     update() {
-        // console.log(`module.update(${this.moduleFrame}) at (${this.x},${this.y})`);
         if (this.moduleType == ModuleType.Cannon) {
-            console.log(`module(${this.moduleType}) Fire at (${this.x},${this.y})`);
-
             // Fire bullets
             if (Global.cursorKeys.shift.isDown) {
                 if (this.fireDuration <= Global.cursorKeys.shift.getDuration()) {
@@ -56,7 +52,7 @@ export class Modules extends Phaser.Physics.Arcade.Group {
         );
     }
 
-    newModule(x: number, y: number, moduleFrame: number) {
+    newModule(x: number, y: number, moduleFrame: number): Module {
         return this.create(x * 10, y * 12, 'modules', moduleFrame)
     }
 
@@ -65,6 +61,23 @@ export class Modules extends Phaser.Physics.Arcade.Group {
     }
 
     update() {
-        this.children.each((module: Module) => { module.update(); return true; }, this);
+        this.children.iterate((module: Module) => { module.update(); return true; }, this);
+    }
+
+    getModule(x: number, y: number): Module | undefined {
+        let isFound = false;
+        let moduleFound = undefined;
+
+        this.children.iterate((module: Module) => {
+            const xx = module.x / 10;
+            const yy = module.y / 12;
+            if (x == xx && y == yy) {
+                // console.log(`getStructure(${x},${y}) ${xx} ${yy} TRUE`);
+                moduleFound = module;
+                isFound = true;
+            }
+            return true;
+        }, this);
+        return moduleFound;
     }
 }
