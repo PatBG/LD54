@@ -23,24 +23,33 @@ export class Player extends Phaser.GameObjects.Container {
         this.add(this.newStructure(0, 1));
         this.add(this.newStructure(1, 1));
 
-        this.add(this.newStructure(-2, 2));
-        this.add(this.newStructure(-1, 2));
-        this.add(this.newStructure(0, 2));
-        this.add(this.newStructure(1, 2));
-        this.add(this.newStructure(2, 2));
-
         this.modules = this.scene.add.existing(new Modules(this.scene.physics.world, this.scene, { name: 'modulesContainer' }));
         this.add(this.modules.newModule(0, 0, ModuleType.Cannon));
 
-        this.add(this.modules.newModule(-1, 1, ModuleType.Shield));
+        this.add(this.modules.newModule(-1, 1, ModuleType.Defense));
         this.add(this.modules.newModule(0, 1, ModuleType.Merchandise));
-        this.add(this.modules.newModule(1, 1, ModuleType.Shield));
+        this.add(this.modules.newModule(1, 1, ModuleType.Defense));
 
-        this.add(this.modules.newModule(-2, 2, ModuleType.Cannon));
-        this.add(this.modules.newModule(-1, 2, ModuleType.Merchandise));
-        this.add(this.modules.newModule(0, 2, ModuleType.Merchandise));
-        this.add(this.modules.newModule(1, 2, ModuleType.Merchandise));
-        this.add(this.modules.newModule(2, 2, ModuleType.Cannon));
+        Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+    }
+
+    onGameStateChange(state: GameState) {
+        if (state === GameState.GoToShop) {
+            // Stop the ship
+            this.body.velocity.x = 0;
+            this.body.velocity.y = 0;
+            // Go automatically to the shop position
+            const tween = this.scene.tweens.add({
+                targets: this,
+                x: Global.PlayerPosInShop.x,
+                y: Global.PlayerPosInShop.y,
+                ease: 'Linear',
+                duration: Math.sqrt(Math.pow(this.x - Global.PlayerPosInShop.x, 2) + Math.pow(this.y - Global.PlayerPosInShop.y, 2)) / this.speed * 1000,
+                onComplete: () => {
+                    Global.setGameState(GameState.Shop);
+                },
+            });
+        }
     }
 
     update(time, delta) {
@@ -85,8 +94,15 @@ export class Player extends Phaser.GameObjects.Container {
         }
     }
 
+    static NewStructure(x: number, y: number) {
+        if (Player.singleton === undefined)
+            return undefined;
+        else
+            return Player.singleton.add(Player.singleton.newStructure(x, y));
+    }
+
     newStructure(x: number, y: number) {
-        return this.scene.add.image(x * Modules.width, y * Modules.height, 'structure')
+        return this.scene.add.image(x * Modules.size.x, y * Modules.size.y, 'structure')
     }
 
     static IsStructure(x: number, y: number): boolean {
@@ -97,20 +113,26 @@ export class Player extends Phaser.GameObjects.Container {
     }
 
     isStructure(x: number, y: number): boolean {
-        let isFound = false;
-        this.each(
-            (image: Phaser.GameObjects.Image) => {
-                const xx = image.x / Modules.width;
-                const yy = image.y / Modules.height;
-                if (x == xx && y == yy) {
-                    if (image.texture.key === 'structure') {
-                        // console.log(`getStructure(${x},${y}) ${xx} ${yy} ${image.texture.key} TRUE`);
-                        isFound = true;
-                    }
-                }
-            },
-            this);
-        return isFound;
+        return this.getStructure(x,y) !== undefined;
+    }
+
+    getStructure(x: number, y: number): Phaser.GameObjects.Image | undefined {
+        let structure = undefined;
+        const xx = x * Modules.size.x;
+        const yy = y * Modules.size.y;
+        this.each((image: Phaser.GameObjects.Image) => {
+            if (image.x == xx && image.y == yy && image.texture.key === 'structure') {
+                structure = image;
+            }
+        }, this);
+        return structure;
+    }
+
+    static NewModule(x: number, y: number, moduleType: ModuleType) {
+        if (Player.singleton === undefined)
+            return undefined;
+        else
+            return Player.singleton.add(Player.singleton.modules.newModule(x, y, moduleType));
     }
 
     static GetModule(x: number, y: number): Module | undefined {
@@ -119,4 +141,34 @@ export class Player extends Phaser.GameObjects.Container {
         else
             return Player.singleton.modules.getModule(x, y);
     }
+
+    static RemoveModule(x: number, y: number): boolean {
+        if (Player.singleton !== undefined) {
+            const module = Player.singleton.modules.getModule(x, y);
+            if (module !== undefined) {
+                Player.singleton.modules.remove(module, true, true);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static NbModule(): number {
+        if (Player.singleton !== undefined) {
+                return Player.singleton.modules.getLength();
+        }
+        return 0;
+    }
+
+    static RemoveStructure(x: number, y: number): boolean {
+        if (Player.singleton !== undefined) {
+            const structure = Player.singleton.getStructure(x, y);
+            if (structure !== undefined) {
+                Player.singleton.remove(structure, true);
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
