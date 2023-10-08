@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { Global } from './Global';
+import { GameState, Global } from './Global';
 import { Player } from './Player';
 import { Bullets, Bullet } from './Bullets';
 import { Enemies, Enemy } from './Enemies';
@@ -78,6 +78,21 @@ export class SceneMain extends Phaser.Scene {
             enemy.onHit();
             Global.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
             Global.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
+        });
+
+        // Global.setGameState(GameState.Fight);
+        Global.setGameState(GameState.Shop);
+
+        this.input.keyboard.addKey('Q').on('down', () => {  // HACK: stop the fight and go to SHOP
+            if (Global.getGameState() === GameState.Fight) {
+                // Remove all enemies
+                this.enemies.children.each((enemy: Enemy) => { enemy.onDestroy(); return true; });
+                this.enemies.clear(true, true);
+                // Remove all enemies bullets
+                Global.enemyBullets.children.each((bullet: Bullet) => { bullet.disableBody(true, true); return true; });
+                // Go to SHOP
+                Global.setGameState(GameState.Shop);
+            }
         });
     }
 
