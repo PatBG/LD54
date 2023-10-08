@@ -8,7 +8,6 @@ import { Modules, Module } from './Modules';
 export class SceneMain extends Phaser.Scene {
     player: Player;
     enemies: Enemies;
-    text: Phaser.GameObjects.Text;
 
     constructor() {
         super({ key: 'SceneMain', active: true });
@@ -23,20 +22,17 @@ export class SceneMain extends Phaser.Scene {
         this.load.image('enemy2', 'assets/enemy2.png');
         this.load.image('enemyBullet', 'assets/enemyBullet.png');
 
-        Global.canvasWidth = this.sys.game.canvas.width;
-        Global.canvasHeight = this.sys.game.canvas.height;
+        Global.initCanvasSize(this);
     }
 
     create() {
-        this.text = this.add.text(0, Global.canvasHeight - 40, '', { font: '16px monospace', color: 'aqua' });
-
         Global.enemyBullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'enemyBullets' }));
         Global.enemyBullets.createMultiple({ key: 'enemyBullet', quantity: 100 });
         this.enemies = this.add.existing(new Enemies(this.physics.world, this, { name: 'enemies' }, Global.enemyBullets));
 
         Global.bullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'bullets' }));
         Global.bullets.createMultiple({ key: 'bullet', quantity: 100 });
-        this.player = new Player(this, this.sys.game.canvas.width / 2, this.sys.game.canvas.height - 100);
+        this.player = new Player(this, Global.PlayerPosInShop.x, Global.PlayerPosInShop.y);
 
         this.physics.world.on('worldbounds', (body) => { body.gameObject.onWorldBounds(); });
 
@@ -80,25 +76,26 @@ export class SceneMain extends Phaser.Scene {
             Global.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
         });
 
-        // Global.setGameState(GameState.Fight);
         Global.setGameState(GameState.Shop);
 
-        this.input.keyboard.addKey('Q').on('down', () => {  // HACK: stop the fight and go to SHOP
-            if (Global.getGameState() === GameState.Fight) {
-                // Remove all enemies
-                this.enemies.children.each((enemy: Enemy) => { enemy.onDestroy(); return true; });
-                this.enemies.clear(true, true);
-                // Remove all enemies bullets
-                Global.enemyBullets.children.each((bullet: Bullet) => { bullet.disableBody(true, true); return true; });
-                // Go to SHOP
-                Global.setGameState(GameState.Shop);
-            }
-        });
+        // HACK: stop the fight and go to SHOP
+        this.input.keyboard.addKey('Q').on('down', () => { this.hackGoToShop(); });
+    }
+
+    hackGoToShop() {
+        if (Global.getGameState() === GameState.Fight) {
+            // Remove all enemies
+            this.enemies.children.each((enemy: Enemy) => { enemy.onDestroy(); return true; });
+            this.enemies.clear(true, true);
+            // Remove all enemies bullets
+            Global.enemyBullets.children.each((bullet: Bullet) => { bullet.disableBody(true, true); return true; });
+            // Go to SHOP
+            Global.setGameState(GameState.GoToShop);
+        }
     }
 
     update(time, delta) {
         this.player.update(time, delta);
-        // this.text.setText([this.bullets.poolInfo(), this.enemyBullets.poolInfo()]);
     }
 }
 
