@@ -4,15 +4,13 @@ import { Global } from './Global';
 export enum ModuleType {
     Merchandise,
     Cannon,
-    Shield,
+    Defense,
 }
 
 export class Module extends Phaser.Physics.Arcade.Sprite {
     moduleType: ModuleType;
     level = 1;
-    fireRate = 5;              // Number of fire per seconds 
     fireDuration = 0;           // Internal timer for fire rate management
-    bulletVelocity = 500;
 
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, moduleType: ModuleType) {
         super(scene, x, y, key, moduleType);
@@ -23,7 +21,14 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     }
 
     onHit() {
-        // console.log(`module(${this.moduleType}) hit at (${this.x},${this.y})`);
+        if (this.moduleType == ModuleType.Defense && this.level > 1) {
+            this.level--;
+        }
+        else {
+            this.onDestroy();
+        }
+    }
+    onDestroy() {
         this.destroy();
     }
 
@@ -32,8 +37,10 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
             // Fire bullets
             if (Global.cursorKeys.shift.isDown) {
                 if (this.fireDuration <= Global.cursorKeys.shift.getDuration()) {
-                    Global.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y, 0, -this.bulletVelocity);
-                    this.fireDuration = Global.cursorKeys.shift.getDuration() + (1000 / this.fireRate);
+                    Global.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y, 0,
+                        - Modules.cannonBulletVelocity(this.level));
+                    this.fireDuration = Global.cursorKeys.shift.getDuration()
+                        + (1000 / Modules.cannonFireRate(this.level));
                 }
             } else if (Global.cursorKeys.shift.isUp) {
                 this.fireDuration = 0;
@@ -43,8 +50,42 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
 }
 
 export class Modules extends Phaser.Physics.Arcade.Group {
-    static readonly   width = 12;
-    static readonly height = 12;
+    static readonly size = new Phaser.Math.Vector2(12, 12);
+
+    static readonly buyPriceStructure = 50;
+    static readonly SellPriceStructure = 25;
+    static buyPrice(moduleType: ModuleType, level: number): number {
+        switch (moduleType) {
+            case ModuleType.Cannon: return 100 + 100 * (level - 1) + 100 * Math.floor(level / 5);
+            case ModuleType.Defense: return 50 + 100 * (level - 1);
+            case ModuleType.Merchandise: return 50 * Math.pow(2, level - 1);
+            default: return 0;
+        }
+    }
+
+    static sellPrice(moduleType: ModuleType, level: number): number {
+        let price = Modules.buyPrice(moduleType, level);
+        if (moduleType != ModuleType.Merchandise) {
+            price *= 0.5;
+        }
+        return price;
+    }
+
+    static priceUpgrade(moduleType: ModuleType, level: number): number {
+        let price = Modules.buyPrice(moduleType, level + 1) - Modules.buyPrice(moduleType, level);
+        if (moduleType == ModuleType.Merchandise) {
+            price *= 1.5;
+        }
+        return price;
+    }
+
+    static cannonFireRate(level: number): number {
+        return 1 + level;
+    }
+
+    static cannonBulletVelocity(level: number): number {
+        return 500 + 250 * Math.floor(level / 5);
+    }
 
     constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config) {
         super(
@@ -55,7 +96,7 @@ export class Modules extends Phaser.Physics.Arcade.Group {
     }
 
     newModule(x: number, y: number, moduleFrame: number): Module {
-        return this.create(x * Modules.width, y * Modules.height, 'modules', moduleFrame)
+        return this.create(x * Modules.size.x, y * Modules.size.y, 'modules', moduleFrame)
     }
 
     onCreate(module: Module) {
@@ -71,8 +112,8 @@ export class Modules extends Phaser.Physics.Arcade.Group {
         let moduleFound = undefined;
 
         this.children.iterate((module: Module) => {
-            const xx = module.x / Modules.width;
-            const yy = module.y / Modules.height;
+            const xx = module.x / Modules.size.x;
+            const yy = module.y / Modules.size.y;
             if (x == xx && y == yy) {
                 // console.log(`getStructure(${x},${y}) ${xx} ${yy} TRUE`);
                 moduleFound = module;
