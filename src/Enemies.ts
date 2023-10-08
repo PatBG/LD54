@@ -1,11 +1,12 @@
 import * as Phaser from 'phaser';
 import { Bullets } from './Bullets';
+import { GameState, Global } from './Global';
 
 export class Enemy extends Phaser.Physics.Arcade.Image {
     bullets: Bullets;
     firing: Phaser.Time.TimerEvent;
     moving: Phaser.Tweens.Tween;
-    maxY:number;
+    maxY: number;
 
     onCreate(bullets: Bullets) {
         this.name = `${this.texture.key} ${this.x} ${this.y})`;
@@ -66,18 +67,19 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
             delay: 1000,
             repeat: -1,
             callback: () => {
-                this.spawn(
-                    Phaser.Math.Between(50, this.scene.sys.game.canvas.width - 50),
-                    Phaser.Math.Between(-100, -50),
-                    (Math.random() < 0.5) ? 'enemy1' : 'enemy2');
+                if (Global.getGameState() === GameState.Fight) {
+                    this.spawn(
+                        Phaser.Math.Between(50, this.scene.sys.game.canvas.width - 50),
+                        Phaser.Math.Between(-100, -50),
+                        (Math.random() < 0.5) ? 'enemy1' : 'enemy2');
+                }
             }
         });
         this.timerSpawnEnemies.callback();      // Spawn one immediately
     }
 
-    spawn(x: number, y: number, image) {
-        // var enemy = this.create(x, y, image);
-        var enemy = this.create(x, y, image);
+    spawn(x: number, y: number, image: string) {
+        this.create(x, y, image);
     }
 
     onCreate(enemy: Enemy) {

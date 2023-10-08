@@ -9,7 +9,11 @@ const config: Phaser.Types.Core.GameConfig =
     width: 800,
     height: 600,
     backgroundColor: 0x000000,
-    scene: [ SceneStarfield, SceneMain, SceneMenu ],
+    scene: [ 
+        SceneStarfield,
+        SceneMain, 
+        SceneMenu 
+    ],
     physics: {
         default: "arcade",
         arcade: {
