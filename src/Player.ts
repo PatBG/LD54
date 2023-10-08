@@ -1,14 +1,16 @@
 import * as Phaser from 'phaser';
-import { Global } from './Global';
-import { Modules, ModuleType } from './Modules';
+import { GameState, Global } from './Global';
+import { Module, Modules, ModuleType } from './Modules';
 
 
 export class Player extends Phaser.GameObjects.Container {
     speed = 300;
     modules: Modules;
+    private static singleton: Player;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y);
+        Player.singleton = this;
         scene.add.existing(this);
         this.setSize(46, 30);
         scene.physics.world.enableBody(this);
@@ -42,9 +44,10 @@ export class Player extends Phaser.GameObjects.Container {
     }
 
     update(time, delta) {
+        if (Global.getGameState() !== GameState.Fight) return;
+
         this.modules.update();
 
-        const container = this.scene.add.container(400, 300);
         if (Global.cursorKeys.left.isDown) {
             this.body.velocity.x = -this.speed;
         }
@@ -70,7 +73,7 @@ export class Player extends Phaser.GameObjects.Container {
 
     hackFirstCall = true;
     hackUnitTest() {                                    // HACK: unit test
-        if (this.hackFirstCall) { 
+        if (this.hackFirstCall) {
             this.hackFirstCall = false;
             for (let x = -2; x <= 2; x++) {             // Unit test : isStructure() and getModule()
                 for (let y = 0; y <= 3; y++) {
@@ -83,15 +86,22 @@ export class Player extends Phaser.GameObjects.Container {
     }
 
     newStructure(x: number, y: number) {
-        return this.scene.add.image(x * 10, y * 12, 'structure')
+        return this.scene.add.image(x * Modules.width, y * Modules.height, 'structure')
     }
 
-    isStructure(x: number, y: number) {
+    static IsStructure(x: number, y: number): boolean {
+        if (Player.singleton === undefined)
+            return false;
+        else
+            return Player.singleton.isStructure(x, y);
+    }
+
+    isStructure(x: number, y: number): boolean {
         let isFound = false;
         this.each(
             (image: Phaser.GameObjects.Image) => {
-                const xx = image.x / 10;
-                const yy = image.y / 12;
+                const xx = image.x / Modules.width;
+                const yy = image.y / Modules.height;
                 if (x == xx && y == yy) {
                     if (image.texture.key === 'structure') {
                         // console.log(`getStructure(${x},${y}) ${xx} ${yy} ${image.texture.key} TRUE`);
@@ -101,5 +111,12 @@ export class Player extends Phaser.GameObjects.Container {
             },
             this);
         return isFound;
+    }
+
+    static GetModule(x: number, y: number): Module | undefined {
+        if (Player.singleton === undefined)
+            return undefined;
+        else
+            return Player.singleton.modules.getModule(x, y);
     }
 }
