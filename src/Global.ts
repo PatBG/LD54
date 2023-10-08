@@ -3,7 +3,7 @@ import { Bullets } from './Bullets';
 
 export enum GameState {
     Intermission,
-    GotoShop,
+    GoToShop,
     Shop,
     Fight
 }
@@ -14,8 +14,17 @@ export class Global {
     public static enemyBullets: Bullets;
     public static explosionPlayer: Phaser.GameObjects.Particles.ParticleEmitter;
     public static explosionEnemy: Phaser.GameObjects.Particles.ParticleEmitter;
-    public static canvasWidth: number;
-    public static canvasHeight: number;
+
+    public static canvasSize: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
+    public static PlayerPosInShop: Phaser.Math.Vector2  = new Phaser.Math.Vector2();
+
+    public static initCanvasSize(scene: Phaser.Scene) {
+        Global.canvasSize.x = scene.sys.game.canvas.width;
+        Global.canvasSize.y = scene.sys.game.canvas.height;
+        Global.PlayerPosInShop.x = Global.canvasSize.x / 2;
+        Global.PlayerPosInShop.y = Global.canvasSize.y - 100;
+    }
+
     public static cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
 
     // Game state
