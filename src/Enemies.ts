@@ -62,20 +62,29 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
         );
         this.bullets = bullets;
 
-        // HACK: spawn enemies for testing
-        this.timerSpawnEnemies = this.scene.time.addEvent({
+        this.timerSpawnEnemies = new Phaser.Time.TimerEvent({
             delay: 1000,
+            startAt: 1000,                  // Trigger the first call at start
             repeat: -1,
-            callback: () => {
-                if (Global.getGameState() === GameState.Fight) {
-                    this.spawn(
-                        Phaser.Math.Between(50, this.scene.sys.game.canvas.width - 50),
-                        Phaser.Math.Between(-100, -50),
-                        (Math.random() < 0.5) ? 'enemy1' : 'enemy2');
-                }
-            }
+            callback: () => { this.callbackSpawnEnemies(); }
         });
-        this.timerSpawnEnemies.callback();      // Spawn one immediately
+        Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+    }
+
+    callbackSpawnEnemies() {
+        this.spawn(
+            Phaser.Math.Between(50, Global.canvasSize.x - 50),
+            Phaser.Math.Between(-100, -50),
+            (Math.random() < 0.5) ? 'enemy1' : 'enemy2');
+    }
+
+    onGameStateChange(state: GameState) {
+        if (Global.getGameState() === GameState.Fight) {
+            this.scene.time.addEvent(this.timerSpawnEnemies);
+        }
+        else {
+            this.scene.time.removeEvent(this.timerSpawnEnemies);
+        }
     }
 
     spawn(x: number, y: number, image: string) {
