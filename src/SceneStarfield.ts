@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { Global, GameState } from './Global';
 
 export class SceneStarfield extends Phaser.Scene {
 
@@ -36,20 +37,22 @@ export class SceneStarfield extends Phaser.Scene {
     }
 
     update(time, delta) {
-        for (let i = 0; i < this.nb_stars; i++) {
-            const perspective = this.distance_min / (this.distance_min - this.zz[i]);
-            let bob = this.stars.children.list[i];
-            bob.y += this.speed_y * (delta / 1000) * perspective;
-            if (bob.y > this.max_y) {
-                bob.y -= this.max_y;
-            } else if (bob.y < 0) {
-                bob.y += this.max_y;
-            }
-            bob.x += this.speed_x * (delta / 1000) * perspective;
-            if (bob.x > this.max_x) {
-                bob.x -= this.max_x;
-            } else if (bob.x < 0) {
-                bob.x += this.max_x;
+        if (Global.getGameState() === GameState.Fight) {
+            for (let i = 0; i < this.nb_stars; i++) {
+                const perspective = this.distance_min / (this.distance_min - this.zz[i]);
+                const bob = this.stars.children.list[i];
+                bob.y += this.speed_y * (delta / 1000) * perspective;
+                if (bob.y > this.max_y) {
+                    bob.y -= this.max_y;
+                } else if (bob.y < 0) {
+                    bob.y += this.max_y;
+                }
+                bob.x += this.speed_x * (delta / 1000) * perspective;
+                if (bob.x > this.max_x) {
+                    bob.x -= this.max_x;
+                } else if (bob.x < 0) {
+                    bob.x += this.max_x;
+                }
             }
         }
     }
