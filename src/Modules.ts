@@ -43,6 +43,8 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
 }
 
 export class Modules extends Phaser.Physics.Arcade.Group {
+    static readonly   width = 12;
+    static readonly height = 12;
 
     constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config) {
         super(
@@ -53,7 +55,7 @@ export class Modules extends Phaser.Physics.Arcade.Group {
     }
 
     newModule(x: number, y: number, moduleFrame: number): Module {
-        return this.create(x * 10, y * 12, 'modules', moduleFrame)
+        return this.create(x * Modules.width, y * Modules.height, 'modules', moduleFrame)
     }
 
     onCreate(module: Module) {
@@ -69,8 +71,8 @@ export class Modules extends Phaser.Physics.Arcade.Group {
         let moduleFound = undefined;
 
         this.children.iterate((module: Module) => {
-            const xx = module.x / 10;
-            const yy = module.y / 12;
+            const xx = module.x / Modules.width;
+            const yy = module.y / Modules.height;
             if (x == xx && y == yy) {
                 // console.log(`getStructure(${x},${y}) ${xx} ${yy} TRUE`);
                 moduleFound = module;
