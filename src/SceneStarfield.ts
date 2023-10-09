@@ -20,8 +20,6 @@ export class SceneStarfield extends Phaser.Scene {
 
     preload() {
         this.load.image('star', 'assets/pixel-white.png');
-        this.max_x = this.sys.game.canvas.width;
-        this.max_y = this.sys.game.canvas.height;
     }
 
     create() {
@@ -34,6 +32,9 @@ export class SceneStarfield extends Phaser.Scene {
             this.zz[i] = Phaser.Math.Between(this.distance_min, this.distance_max);
             this.stars.create(Phaser.Math.Between(0, 800), Phaser.Math.Between(0, 800));
         }
+
+        this.max_x = Global.canvasSize.x;
+        this.max_y = Global.canvasSize.y;
     }
 
     update(time, delta) {
