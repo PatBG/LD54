@@ -79,7 +79,7 @@ export class SceneMain extends Phaser.Scene {
         Global.setGameState(GameState.Shop);
 
         // HACK: stop the fight and go to SHOP
-        this.input.keyboard.addKey('Q').on('down', () => { this.hackGoToShop(); });
+        this.input.keyboard.addKey('ESC').on('down', () => { this.hackGoToShop(); });
     }
 
     hackGoToShop() {
