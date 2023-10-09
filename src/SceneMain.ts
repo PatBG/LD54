@@ -14,9 +14,9 @@ export class SceneMain extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('structure', 'assets/structure.png');
+        // this.load.image('structure', 'assets/structure.png');
         this.load.image('bullet', 'assets/bullet.png');
-        this.load.spritesheet('modules', 'assets/modules.png', { frameWidth: 8, frameHeight: 8 });
+        this.load.spritesheet('modules', 'assets/modules.png', { frameWidth: 16, frameHeight: 16 });
 
         this.load.image('enemy1', 'assets/enemy1.png');
         this.load.image('enemy2', 'assets/enemy2.png');

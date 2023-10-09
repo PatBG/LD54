@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 import { Global } from './Global';
 
 export enum ModuleType {
-    Merchandise,
+    Merchandise = 1,
     Cannon,
     Defense,
 }
@@ -65,7 +65,7 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
 }
 
 export class Modules extends Phaser.Physics.Arcade.Group {
-    static readonly size = new Phaser.Math.Vector2(12, 12);
+    static readonly size = new Phaser.Math.Vector2(16, 16);
 
     constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config) {
         super(

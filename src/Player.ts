@@ -102,7 +102,7 @@ export class Player extends Phaser.GameObjects.Container {
     }
 
     newStructure(x: number, y: number) {
-        return this.scene.add.image(x * Modules.size.x, y * Modules.size.y, 'structure')
+        return this.scene.add.sprite(x * Modules.size.x, y * Modules.size.y, 'modules', 0);
     }
 
     static IsStructure(x: number, y: number): boolean {
@@ -116,13 +116,13 @@ export class Player extends Phaser.GameObjects.Container {
         return this.getStructure(x,y) !== undefined;
     }
 
-    getStructure(x: number, y: number): Phaser.GameObjects.Image | undefined {
+    getStructure(x: number, y: number): Phaser.GameObjects.Sprite | undefined {
         let structure = undefined;
         const xx = x * Modules.size.x;
         const yy = y * Modules.size.y;
-        this.each((image: Phaser.GameObjects.Image) => {
-            if (image.x == xx && image.y == yy && image.texture.key === 'structure') {
-                structure = image;
+        this.each((sprite: Phaser.GameObjects.Sprite) => {
+            if (sprite.x == xx && sprite.y == yy && sprite.frame.name == '0') {
+                structure = sprite;
             }
         }, this);
         return structure;
