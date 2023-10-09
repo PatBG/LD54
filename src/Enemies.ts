@@ -4,28 +4,26 @@ import { GameState, Global } from './Global';
 
 export class Enemy extends Phaser.Physics.Arcade.Image {
     bullets: Bullets;
-    firing: Phaser.Time.TimerEvent;
-    moving: Phaser.Tweens.Tween;
+    timerFiring: Phaser.Time.TimerEvent;
+    tweenMoving: Phaser.Tweens.Tween;
     maxY: number;
 
     onCreate(bullets: Bullets) {
         this.name = `${this.texture.key} ${this.x} ${this.y})`;
-        // console.log(`Enemy.onCreate(${this.name})`);
-        this.setVelocity(0, 50);
         this.bullets = bullets;
-        this.maxY = this.scene.sys.game.canvas.height + 50;
-        this.firing = this.scene.time.addEvent({
+        this.maxY = Global.canvasSize.y + 50;
+        this.timerFiring = this.scene.time.addEvent({
             delay: 750,
             loop: true,
             callback: () => {
                 this.bullets.fire(this.x, this.y, 0, 300);
             }
         });
-        this.moving = this.scene.tweens.add({
+        this.tweenMoving = this.scene.tweens.add({
             targets: this.body.velocity,
             props: {
                 x: { from: 150, to: -150, duration: 4000 },
-                // y: { from: 50, to: -50, duration: 2000 }
+                y: 100,
             },
             ease: 'Sine.easeInOut',
             yoyo: true,
@@ -44,8 +42,8 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
 
     onDestroy() {
         // console.log(`Enemy.onDestroy(${this.name})`);
-        this.firing.remove();
-        this.moving.remove();
+        this.timerFiring.remove();
+        this.tweenMoving.remove();
         this.destroy();
     }
 }
