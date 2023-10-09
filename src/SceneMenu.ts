@@ -44,11 +44,11 @@ export class SceneMenu extends Phaser.Scene {
             ` (${this.actionDescription(ModuleType.Merchandise, 1)})`);
         this.menuCannon = this.addMenuText(`[C] buy Cannon : ${Modules.buyPrice(ModuleType.Cannon, 1)} $` +
             ` (${this.actionDescription(ModuleType.Cannon, 1)})`);
-        this.menuRotate = this.addMenuText(`[R] Rotate cannon (only if level 1)`);
+        this.menuRotate = this.addMenuText(`[R] Rotate cannon (only if level 1, [SHIFT] + [R] turn the other way)`);
         this.menuUpgrade = this.addMenuText(`[U] Upgrade`);
         this.menuSell = this.addMenuText(`[S] Sell`);
         this.addMenuText('');
-        this.menuGo = this.addMenuText(`[Q] Quit the shop and start the fight`);
+        this.menuGo = this.addMenuText(`[ESC] quit the shop and start the next wavefight`);
         this.menuGo.setStyle(this.styleActive);
 
         this.input.keyboard.addKey('T').on('down', () => { this.onBuyStructure(); });
@@ -59,7 +59,7 @@ export class SceneMenu extends Phaser.Scene {
         this.input.keyboard.addKey('U').on('down', () => { this.onUpgrade(); });
         this.input.keyboard.addKey('S').on('down', () => { this.onSell(); });
 
-        this.input.keyboard.addKey('Q').on('down', () => { this.onQuit(); });
+        this.input.keyboard.addKey('ESC').on('down', () => { this.onQuit(); });
 
         this.input.keyboard.addKey('LEFT').on('down', () => { this.onMoveCursor(-1, 0); });
         this.input.keyboard.addKey('RIGHT').on('down', () => { this.onMoveCursor(1, 0); });
@@ -114,6 +114,12 @@ export class SceneMenu extends Phaser.Scene {
     }
 
     onRotateCannon() {
+        if (this.menuRotate.style.color === this.styleActiveColor) {
+            const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
+            if (module !== undefined && module.moduleType === ModuleType.Cannon) {
+                module.addAngleCannon(Global.cursorKeys.shift.isDown ? -Math.PI / 8 : Math.PI / 8);
+            }
+        }
     }
 
     onUpgrade() {

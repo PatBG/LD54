@@ -55,7 +55,7 @@ export class Player extends Phaser.GameObjects.Container {
     update(time, delta) {
         if (Global.getGameState() !== GameState.Fight) return;
 
-        this.modules.update();
+        this.modules.update(time, delta);
 
         if (Global.cursorKeys.left.isDown) {
             this.body.velocity.x = -this.speed;

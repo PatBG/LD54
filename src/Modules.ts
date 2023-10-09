@@ -10,7 +10,9 @@ export enum ModuleType {
 export class Module extends Phaser.Physics.Arcade.Sprite {
     moduleType: ModuleType;
     level = 1;
-    fireDuration = 0;           // Internal timer for fire rate management
+    keyFire: Phaser.Input.Keyboard.Key;
+    timeNextFire = 0;
+    angleCannon = 0;
 
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, moduleType: ModuleType) {
         super(scene, x, y, key, moduleType);
@@ -18,6 +20,9 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     }
 
     onCreate() {
+        if (this.moduleType === ModuleType.Cannon) {
+            this.keyFire = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+        }
     }
 
     onHit() {
@@ -32,18 +37,28 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         this.destroy();
     }
 
-    update() {
-        if (this.moduleType == ModuleType.Cannon) {
-            // Fire bullets
-            if (Global.cursorKeys.shift.isDown) {
-                if (this.fireDuration <= Global.cursorKeys.shift.getDuration()) {
-                    Global.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y, 0,
-                        - Modules.cannonBulletVelocity(this.level));
-                    this.fireDuration = Global.cursorKeys.shift.getDuration()
-                        + (1000 / Modules.cannonFireRate(this.level));
-                }
-            } else if (Global.cursorKeys.shift.isUp) {
-                this.fireDuration = 0;
+    addAngleCannon(angleCannon: number) {
+        if (this.moduleType === ModuleType.Cannon) {
+            this.angleCannon += angleCannon;
+            this.setRotation(this.angleCannon);
+        }
+    }
+
+    setAngleCannon(angleCannon: number) {
+        if (this.moduleType === ModuleType.Cannon) {
+            this.angleCannon = angleCannon;
+            this.setRotation(angleCannon);
+        }
+    }
+
+    update(time, delta) {
+        if (this.moduleType === ModuleType.Cannon) {
+            if (this.keyFire.isDown && time >= this.timeNextFire) {
+                this.timeNextFire = time + 1000 / Modules.cannonFireRate(this.level);
+                const velocity = Modules.cannonBulletVelocity(this.level);
+                const angle = this.angleCannon - Math.PI / 2;
+                Global.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
+                    Math.cos(angle) * velocity, Math.sin(angle) * velocity);
             }
         }
     }
@@ -51,6 +66,18 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
 
 export class Modules extends Phaser.Physics.Arcade.Group {
     static readonly size = new Phaser.Math.Vector2(12, 12);
+
+    constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config) {
+        super(
+            world,
+            scene,
+            { ...config, classType: Module, createCallback: Modules.prototype.onCreate }
+        );
+    }
+
+    onCreate(module: Module) {
+        module.onCreate();
+    }
 
     static readonly buyPriceStructure = 50;
     static readonly SellPriceStructure = 25;
@@ -87,24 +114,12 @@ export class Modules extends Phaser.Physics.Arcade.Group {
         return 500 + 250 * Math.floor(level / 5);
     }
 
-    constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config) {
-        super(
-            world,
-            scene,
-            { ...config, classType: Module, createCallback: Module.prototype.onCreate }
-        );
-    }
-
     newModule(x: number, y: number, moduleFrame: number): Module {
         return this.create(x * Modules.size.x, y * Modules.size.y, 'modules', moduleFrame)
     }
 
-    onCreate(module: Module) {
-        module.onCreate();
-    }
-
-    update() {
-        this.children.iterate((module: Module) => { module.update(); return true; }, this);
+    update(time, delta) {
+        this.children.iterate((module: Module) => { module.update(time, delta); return true; }, this);
     }
 
     getModule(x: number, y: number): Module | undefined {
