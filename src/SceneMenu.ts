@@ -48,7 +48,7 @@ export class SceneMenu extends Phaser.Scene {
         this.menuUpgrade = this.addMenuText(`[U] Upgrade`);
         this.menuSell = this.addMenuText(`[S] Sell`);
         this.addMenuText('');
-        this.menuGo = this.addMenuText(`[ESC] quit the shop and start the next wavefight`);
+        this.menuGo = this.addMenuText(`[ESC] quit the shop and start the next wave`);
         this.menuGo.setStyle(this.styleActive);
 
         this.input.keyboard.addKey('T').on('down', () => { this.onBuyStructure(); });
