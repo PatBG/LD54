@@ -53,6 +53,9 @@ export class Player extends Phaser.GameObjects.Container {
                 },
             });
         }
+        else if (state === GameState.Fight) {
+            this.modules.onStartWave();
+        }
     }
 
     update(time, delta) {
@@ -173,5 +176,4 @@ export class Player extends Phaser.GameObjects.Container {
         }
         return false;
     }
-
 }

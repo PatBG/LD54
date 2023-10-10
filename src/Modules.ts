@@ -11,6 +11,7 @@ export enum ModuleType {
 export class Module extends Phaser.Physics.Arcade.Sprite {
     moduleType: ModuleType;
     level = 1;
+    life = 1;
     bullets: Bullets;
     keyFire: Phaser.Input.Keyboard.Key;
     timeNextFire = 0;
@@ -28,14 +29,23 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    onHit() {
-        if (this.moduleType == ModuleType.Defense && this.level > 1) {
-            this.level--;
+    onStartWave() {
+        if (this.moduleType === ModuleType.Defense) {
+            this.life = 1 + this.level;
         }
-        else {
+    }
+
+    onHit() {
+        this.life--;
+        if (this.life <= 0) {
             this.onDestroy();
         }
     }
+
+    isAlive(): boolean {
+        return this.life > 0;
+    }
+
     onDestroy() {
         this.destroy();
     }
@@ -125,6 +135,10 @@ export class Modules extends Phaser.Physics.Arcade.Group {
 
     update(time, delta) {
         this.children.iterate((module: Module) => { module.update(time, delta); return true; }, this);
+    }
+
+    onStartWave() {
+        this.children.iterate((module: Module) => { module.onStartWave(); return true; }, this);
     }
 
     getModule(x: number, y: number): Module | undefined {

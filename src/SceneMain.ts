@@ -3,7 +3,7 @@ import { GameState, Global } from './Global';
 import { Player } from './Player';
 import { Bullets, Bullet } from './Bullets';
 import { Enemies, Enemy } from './Enemies';
-import { Modules, Module } from './Modules';
+import { Modules, Module, ModuleType } from './Modules';
 
 export class SceneMain extends Phaser.Scene {
     player: Player;
@@ -12,6 +12,7 @@ export class SceneMain extends Phaser.Scene {
     enemyBullets: Bullets;
     explosionPlayer: Phaser.GameObjects.Particles.ParticleEmitter;
     explosionEnemy: Phaser.GameObjects.Particles.ParticleEmitter;
+    explosionDefense: Phaser.GameObjects.Particles.ParticleEmitter;
 
     constructor() {
         super({ key: 'SceneMain', active: true });
@@ -58,11 +59,26 @@ export class SceneMain extends Phaser.Scene {
             scale: { start: 1, end: 3, ease: 'Cubic.easeOut' }
         });
 
+        this.explosionDefense = this.add.particles(0, 0, 'modules', {
+            frame: [3],
+            alpha: { start: 1, end: 0, ease: 'Cubic.easeIn' },
+            blendMode: Phaser.BlendModes.SCREEN,
+            frequency: -1,
+            lifespan: 500,
+            radial: false,
+            scale: { start: 1, end: 3, ease: 'Cubic.easeOut' }
+        });
+
         // Collision player/enemyBullet
         this.physics.add.overlap(this.player.modules, this.enemyBullets, (module: Module, bullet: Bullet) => {
             module.onHit();
             bullet.disableBody(true, true);
-            this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            if (module.moduleType === ModuleType.Defense && module.isAlive()) {
+                this.explosionDefense.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
+            else {
+                this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
         });
 
         // Collision enemy/playerBullet
@@ -76,7 +92,12 @@ export class SceneMain extends Phaser.Scene {
         this.physics.add.overlap(this.player.modules, this.enemies, (module: Module, enemy: Enemy) => {
             module.onHit();
             enemy.onHit();
-            this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            if (module.moduleType === ModuleType.Defense && module.isAlive()) {
+                this.explosionDefense.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
+            else {
+                this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
             this.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
         });
 
