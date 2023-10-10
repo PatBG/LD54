@@ -8,6 +8,10 @@ import { Modules, Module } from './Modules';
 export class SceneMain extends Phaser.Scene {
     player: Player;
     enemies: Enemies;
+    bullets: Bullets;
+    enemyBullets: Bullets;
+    explosionPlayer: Phaser.GameObjects.Particles.ParticleEmitter;
+    explosionEnemy: Phaser.GameObjects.Particles.ParticleEmitter;
 
     constructor() {
         super({ key: 'SceneMain', active: true });
@@ -26,17 +30,17 @@ export class SceneMain extends Phaser.Scene {
     }
 
     create() {
-        Global.enemyBullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'enemyBullets' }));
-        Global.enemyBullets.createMultiple({ key: 'enemyBullet', quantity: 100 });
-        this.enemies = this.add.existing(new Enemies(this.physics.world, this, { name: 'enemies' }, Global.enemyBullets));
+        this.enemyBullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'enemyBullets' }));
+        this.enemyBullets.createMultiple({ key: 'enemyBullet', quantity: 100 });
+        this.enemies = this.add.existing(new Enemies(this.physics.world, this, { name: 'enemies' }, this.enemyBullets));
 
-        Global.bullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'bullets' }));
-        Global.bullets.createMultiple({ key: 'bullet', quantity: 100 });
-        this.player = new Player(this, Global.PlayerPosInShop.x, Global.PlayerPosInShop.y);
+        this.bullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'bullets' }));
+        this.bullets.createMultiple({ key: 'bullet', quantity: 100 });
+        this.player = new Player(this, Global.PlayerPosInShop.x, Global.PlayerPosInShop.y, this.bullets);
 
         this.physics.world.on('worldbounds', (body) => { body.gameObject.onWorldBounds(); });
 
-        Global.explosionEnemy = this.add.particles(0, 0, 'enemyBullet', {
+        this.explosionEnemy = this.add.particles(0, 0, 'enemyBullet', {
             alpha: { start: 1, end: 0, ease: 'Cubic.easeIn' },
             blendMode: Phaser.BlendModes.SCREEN,
             frequency: -1,
@@ -45,7 +49,7 @@ export class SceneMain extends Phaser.Scene {
             scale: { start: 1, end: 5, ease: 'Cubic.easeOut' }
         });
 
-        Global.explosionPlayer = this.add.particles(0, 0, 'bullet', {
+        this.explosionPlayer = this.add.particles(0, 0, 'bullet', {
             alpha: { start: 1, end: 0, ease: 'Cubic.easeIn' },
             blendMode: Phaser.BlendModes.SCREEN,
             frequency: -1,
@@ -55,25 +59,25 @@ export class SceneMain extends Phaser.Scene {
         });
 
         // Collision player/enemyBullet
-        this.physics.add.overlap(this.player.modules, Global.enemyBullets, (module: Module, bullet: Bullet) => {
+        this.physics.add.overlap(this.player.modules, this.enemyBullets, (module: Module, bullet: Bullet) => {
             module.onHit();
             bullet.disableBody(true, true);
-            Global.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
         });
 
         // Collision enemy/playerBullet
-        this.physics.add.overlap(this.enemies, Global.bullets, (enemy: Enemy, bullet: Bullet) => {
+        this.physics.add.overlap(this.enemies, this.bullets, (enemy: Enemy, bullet: Bullet) => {
             enemy.onHit();
             bullet.disableBody(true, true);
-            Global.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
+            this.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
         });
 
         // Collision player/enemy
         this.physics.add.overlap(this.player.modules, this.enemies, (module: Module, enemy: Enemy) => {
             module.onHit();
             enemy.onHit();
-            Global.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
-            Global.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
+            this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            this.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
         });
 
         Global.setGameState(GameState.Shop);
@@ -88,7 +92,7 @@ export class SceneMain extends Phaser.Scene {
             this.enemies.children.each((enemy: Enemy) => { enemy.onDestroy(); return true; });
             this.enemies.clear(true, true);
             // Remove all enemies bullets
-            Global.enemyBullets.children.each((bullet: Bullet) => { bullet.disableBody(true, true); return true; });
+            this.enemyBullets.children.each((bullet: Bullet) => { bullet.disableBody(true, true); return true; });
             // Go to SHOP
             Global.setGameState(GameState.GoToShop);
         }

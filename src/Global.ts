@@ -10,11 +10,6 @@ export enum GameState {
 
 export class Global {
     
-    public static bullets: Bullets;
-    public static enemyBullets: Bullets;
-    public static explosionPlayer: Phaser.GameObjects.Particles.ParticleEmitter;
-    public static explosionEnemy: Phaser.GameObjects.Particles.ParticleEmitter;
-
     public static canvasSize: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
     public static PlayerPosInShop: Phaser.Math.Vector2  = new Phaser.Math.Vector2();
 

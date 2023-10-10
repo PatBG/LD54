@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { Global } from './Global';
+import { Bullets } from './Bullets';
 
 export enum ModuleType {
     Merchandise = 1,
@@ -10,6 +11,7 @@ export enum ModuleType {
 export class Module extends Phaser.Physics.Arcade.Sprite {
     moduleType: ModuleType;
     level = 1;
+    bullets: Bullets;
     keyFire: Phaser.Input.Keyboard.Key;
     timeNextFire = 0;
     angleCannon = 0;
@@ -19,8 +21,9 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         this.moduleType = moduleType;
     }
 
-    onCreate() {
+    onCreate(bullets: Bullets) {
         if (this.moduleType === ModuleType.Cannon) {
+            this.bullets = bullets;
             this.keyFire = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
         }
     }
@@ -57,7 +60,7 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
                 this.timeNextFire = time + 1000 / Modules.cannonFireRate(this.level);
                 const velocity = Modules.cannonBulletVelocity(this.level);
                 const angle = this.angleCannon - Math.PI / 2;
-                Global.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
+                this.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
                     Math.cos(angle) * velocity, Math.sin(angle) * velocity);
             }
         }
@@ -66,17 +69,19 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
 
 export class Modules extends Phaser.Physics.Arcade.Group {
     static readonly size = new Phaser.Math.Vector2(16, 16);
+    bullets: Bullets;
 
-    constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config) {
+    constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config, bullets: Bullets) {
         super(
             world,
             scene,
             { ...config, classType: Module, createCallback: Modules.prototype.onCreate }
         );
+        this.bullets = bullets;
     }
 
     onCreate(module: Module) {
-        module.onCreate();
+        module.onCreate(this.bullets);
     }
 
     static readonly buyPriceStructure = 50;

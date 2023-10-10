@@ -1,15 +1,18 @@
 import * as Phaser from 'phaser';
 import { GameState, Global } from './Global';
 import { Module, Modules, ModuleType } from './Modules';
+import { Bullets } from './Bullets';
 
 
 export class Player extends Phaser.GameObjects.Container {
     speed = 300;
     modules: Modules;
+    bullets: Bullets;
     private static singleton: Player;
 
-    constructor(scene: Phaser.Scene, x: number, y: number) {
+    constructor(scene: Phaser.Scene, x: number, y: number, bullets: Bullets) {
         super(scene, x, y);
+        this.bullets = bullets;
         Player.singleton = this;
         scene.add.existing(this);
         this.setSize(46, 30);
@@ -23,7 +26,7 @@ export class Player extends Phaser.GameObjects.Container {
         this.add(this.newStructure(0, 1));
         this.add(this.newStructure(1, 1));
 
-        this.modules = this.scene.add.existing(new Modules(this.scene.physics.world, this.scene, { name: 'modulesContainer' }));
+        this.modules = this.scene.add.existing(new Modules(this.scene.physics.world, this.scene, { name: 'modulesContainer' }, this.bullets));
         this.add(this.modules.newModule(0, 0, ModuleType.Cannon));
 
         this.add(this.modules.newModule(-1, 1, ModuleType.Defense));
