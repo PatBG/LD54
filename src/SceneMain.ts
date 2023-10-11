@@ -73,12 +73,8 @@ export class SceneMain extends Phaser.Scene {
         this.physics.add.overlap(this.player.modules, this.enemyBullets, (module: Module, bullet: Bullet) => {
             module.onHit();
             bullet.disableBody(true, true);
-            if (module.moduleType === ModuleType.Defense && module.isAlive()) {
-                this.explosionDefense.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
-            }
-            else {
-                this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
-            }
+            const explosion = module.isAlive() ? this.explosionDefense : this.explosionPlayer;
+            explosion.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
         });
 
         // Collision enemy/playerBullet
@@ -92,12 +88,8 @@ export class SceneMain extends Phaser.Scene {
         this.physics.add.overlap(this.player.modules, this.enemies, (module: Module, enemy: Enemy) => {
             module.onHit();
             enemy.onHit();
-            if (module.moduleType === ModuleType.Defense && module.isAlive()) {
-                this.explosionDefense.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
-            }
-            else {
-                this.explosionPlayer.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
-            }
+            const explosion = module.isAlive() ? this.explosionDefense : this.explosionPlayer;
+            explosion.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
             this.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
         });
 

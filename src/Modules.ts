@@ -16,6 +16,7 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     keyFire: Phaser.Input.Keyboard.Key;
     timeNextFire = 0;
     angleCannon = 0;
+    tweenLowLife: Phaser.Tweens.Tween;
 
     constructor(scene: Phaser.Scene, x: number, y: number, key: string, moduleType: ModuleType) {
         super(scene, x, y, key, moduleType);
@@ -32,12 +33,25 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     onStartWave() {
         if (this.moduleType === ModuleType.Defense) {
             this.life = 1 + this.level;
+        } 
+        else {
+            this.life = 2;
         }
     }
 
     onHit() {
         this.life--;
-        if (this.life <= 0) {
+        if (this.life == 1) {
+            this.tweenLowLife = this.scene.tweens.add({
+                targets: this,
+                alpha: 0.3,
+                ease: 'Linear',
+                duration: 250,
+                yoyo: true,
+                repeat: -1,
+            });
+        }
+        else if (this.life <= 0) {
             this.onDestroy();
         }
     }
@@ -47,6 +61,9 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     }
 
     onDestroy() {
+        if (this.tweenLowLife != undefined) {
+            this.tweenLowLife.remove();
+        }
         this.destroy();
     }
 
