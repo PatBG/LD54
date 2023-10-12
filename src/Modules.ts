@@ -30,12 +30,26 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    onStartWave() {
+    onBeginWave() {
+        // Initialize life
         if (this.moduleType === ModuleType.Defense) {
             this.life = 1 + this.level;
         } 
         else {
             this.life = 2;
+        }
+    }
+
+    onEndWave() {
+        // Upgrade alive merchandises at the end of every wave 
+        if (this.moduleType === ModuleType.Merchandise) {
+            this.level++;
+        }
+        // Remove low life effect if set
+        if (this.tweenLowLife != undefined) {
+            // this.tweenLowLife.restart();            // Restart the tween to reset altered properties
+            this.tweenLowLife.remove();
+            // this.tweenLowLife = undefined;
         }
     }
 
@@ -63,6 +77,7 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     onDestroy() {
         if (this.tweenLowLife != undefined) {
             this.tweenLowLife.remove();
+            this.tweenLowLife.destroy();
         }
         this.destroy();
     }
@@ -154,9 +169,14 @@ export class Modules extends Phaser.Physics.Arcade.Group {
         this.children.iterate((module: Module) => { module.update(time, delta); return true; }, this);
     }
 
-    onStartWave() {
-        this.children.iterate((module: Module) => { module.onStartWave(); return true; }, this);
+    onBeginWave() {
+        this.children.iterate((module: Module) => { module.onBeginWave(); return true; }, this);
     }
+
+    onEndWave() {
+        this.children.iterate((module: Module) => { module.onEndWave(); return true; }, this);
+    }
+
 
     getModule(x: number, y: number): Module | undefined {
         let isFound = false;

@@ -41,6 +41,7 @@ export class Player extends Phaser.GameObjects.Container {
             // Stop the ship
             this.body.velocity.x = 0;
             this.body.velocity.y = 0;
+            this.modules.onEndWave();
             // Go automatically to the shop position
             const tween = this.scene.tweens.add({
                 targets: this,
@@ -54,7 +55,7 @@ export class Player extends Phaser.GameObjects.Container {
             });
         }
         else if (state === GameState.Fight) {
-            this.modules.onStartWave();
+            this.modules.onBeginWave();
         }
     }
 
