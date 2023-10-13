@@ -1,11 +1,12 @@
 import * as Phaser from 'phaser';
-import { Bullets } from './Bullets';
 
+// GameStart -> Fight -> EndWave -> Shop -> Fight -> EndWave -> Shop -> Fight -> GameOver -> GameStart
 export enum GameState {
-    Intermission,
-    GoToShop,
+    GameStart,
+    Fight,
+    EndWave,
     Shop,
-    Fight
+    GameOver,
 }
 
 export class Global {
@@ -22,8 +23,10 @@ export class Global {
 
     public static cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
 
+    public static wave = 0;
+
     // Game state
-    private static gameState: GameState = GameState.Intermission;
+    private static gameState: GameState = GameState.GameStart;
     private static gameStateEmitter: Phaser.Events.EventEmitter = new Phaser.Events.EventEmitter();
     public static onGameStateChange(callback: (state: GameState) => void): void {
         this.gameStateEmitter.on('change', callback);
