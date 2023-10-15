@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
-import { Bullets } from './Bullets';
+import { Bullet, Bullets } from './Bullets';
 import { GameState, Global } from './Global';
+import { Sounds } from './Sounds';
 
 export class Enemy extends Phaser.Physics.Arcade.Image {
     bullets: Bullets;
@@ -15,15 +16,13 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
         this.timerFiring = this.scene.time.addEvent({
             delay: 750,
             loop: true,
-            callback: () => {
-                this.bullets.fire(this.x, this.y, 0, 300);
-            }
+            callback: () => { this.onFire(); },
         });
         this.tweenMoving = this.scene.tweens.add({
             targets: this.body.velocity,
             props: {
                 x: { from: 150, to: -150, duration: 4000 },
-                y: 100,
+                y: 200,
             },
             ease: 'Sine.easeInOut',
             yoyo: true,
@@ -38,10 +37,17 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
 
     onHit() {
         this.onDestroy();
+        // Bonus when an enemy is destroyed
+        Global.moneyBonus += 10;
+        Sounds.EnemyExplosion.play();
+    }
+
+    onFire() {
+        this.bullets.fire(this.x, this.y, 0, 300);
+        //Sounds.EnemyFire.play();
     }
 
     onDestroy() {
-        // console.log(`Enemy.onDestroy(${this.name})`);
         this.timerFiring.remove();
         this.tweenMoving.remove();
         this.destroy();
@@ -49,8 +55,10 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
 }
 
 export class Enemies extends Phaser.Physics.Arcade.Group {
-    timerSpawnEnemies: Phaser.Time.TimerEvent;
     bullets: Bullets;
+    rnd: Phaser.Math.RandomDataGenerator;
+    waveTotalEnemies: number;
+    waveEnemiesSpawned: number;
 
     constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config, bullets: Bullets) {
         super(
@@ -60,29 +68,41 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
         );
         this.bullets = bullets;
 
-        this.timerSpawnEnemies = new Phaser.Time.TimerEvent({
-            delay: 1000,
-            startAt: 1000,                  // Trigger the first call at start
-            repeat: -1,
-            callback: () => { this.callbackSpawnEnemies(); }
-        });
         Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
     }
 
     callbackSpawnEnemies() {
-        this.spawn(
-            Phaser.Math.Between(50, Global.canvasSize.x - 50),
-            Phaser.Math.Between(-100, -50),
-            (Math.random() < 0.5) ? 'enemy1' : 'enemy2');
+        if (this.waveEnemiesSpawned < this.waveTotalEnemies) {
+            this.spawn(
+                this.rnd.between(50, Global.canvasSize.x - 50),
+                this.rnd.between(-100, -50),
+                (this.rnd.normal() > 0) ? 'enemy1' : 'enemy2');
+            this.waveEnemiesSpawned++;
+
+            // Recall this function until all enemies are spawned
+            this.scene.time.delayedCall((1000 / this.rnd.between(1, 1 + Global.wave)) + this.rnd.between(0, 500),
+                () => { this.callbackSpawnEnemies(); });
+        }
     }
 
     onGameStateChange(state: GameState) {
         if (Global.getGameState() === GameState.Fight) {
-            this.scene.time.addEvent(this.timerSpawnEnemies);
+            // Start a new wave
+            this.rnd = new Phaser.Math.RandomDataGenerator("SeedWave" + Global.wave);
+            this.waveTotalEnemies = 10 + Global.wave * 2;
+            this.waveEnemiesSpawned = 0;
+            this.callbackSpawnEnemies();
         }
         else {
-            this.scene.time.removeEvent(this.timerSpawnEnemies);
         }
+    }
+
+    killAll() {
+        // Remove all remaining enemies
+        this.children.each((enemy: Enemy) => { enemy.onDestroy(); return true; });
+        this.clear(true, true);
+        // Remove all remaining enemies bullets
+        this.bullets.children.each((bullet: Bullet) => { bullet.disableBody(true, true); return true; });
     }
 
     spawn(x: number, y: number, image: string) {
@@ -90,11 +110,14 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
     }
 
     onCreate(enemy: Enemy) {
-        // console.log(`Enemies.onCreate(${enemy.texture.key} ${enemy.x} ${enemy.y})`);
         enemy.onCreate(this.bullets);
     }
 
-    poolInfo() {
-        return `${this.name} ${this.countActive(true)}/${this.getLength()}`;
+    update(time, delta) {
+        if (Global.getGameState() !== GameState.Fight) return;
+
+        if (this.waveEnemiesSpawned >= this.waveTotalEnemies && this.countActive() === 0 && this.bullets.countActive() === 0) {
+            Global.setGameState(GameState.EndWave);
+        }
     }
 }
