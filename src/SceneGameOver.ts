@@ -19,12 +19,12 @@ export class SceneGameOver extends Phaser.Scene {
         this.tweens.add({
             targets: factor,
             props: {
-                x: { from : 0, to: -0.5, duration: 200 },
-                y: { from : 0, to: -0.5, duration: 200 },
+                x: { from : 0, to: -0.5, duration: 400 },
+                y: { from : 0, to: -0.5, duration: 400 },
             },
             ease: 'Sine.easeInOut',
             yoyo: true,
-            repeat: 5,
+            repeat: 2,
             onUpdate: () => {
                 text.scaleX = 1 + factor.x;
                 text.scaleY = 1 + factor.y;
