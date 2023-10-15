@@ -3,6 +3,7 @@ import { GameState, Global } from './Global';
 import { Player } from './Player';
 import { Bullets, Bullet } from './Bullets';
 import { Enemies, Enemy } from './Enemies';
+import { Sounds } from './Sounds';
 import { Modules, Module, ModuleType } from './Modules';
 
 export class SceneMain extends Phaser.Scene {
@@ -10,9 +11,10 @@ export class SceneMain extends Phaser.Scene {
     enemies: Enemies;
     bullets: Bullets;
     enemyBullets: Bullets;
-    explosionPlayer: Phaser.GameObjects.Particles.ParticleEmitter;
+    explosionModuleDestroyed: Phaser.GameObjects.Particles.ParticleEmitter;
     explosionEnemy: Phaser.GameObjects.Particles.ParticleEmitter;
-    explosionDefense: Phaser.GameObjects.Particles.ParticleEmitter;
+    explosionModuleHit: Phaser.GameObjects.Particles.ParticleEmitter;
+    infoText: Phaser.GameObjects.Text;
 
     constructor() {
         super({ key: 'SceneMain', active: true });
@@ -28,9 +30,14 @@ export class SceneMain extends Phaser.Scene {
         this.load.image('enemyBullet', 'assets/enemyBullet.png');
 
         Global.initCanvasSize(this);
+        Sounds.preload(this);
     }
 
     create() {
+        Sounds.create(this);
+
+        this.infoText = this.add.text(5, 5, '', { font: '16px monospace', color: 'white' });
+
         this.enemyBullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'enemyBullets' }));
         this.enemyBullets.createMultiple({ key: 'enemyBullet', quantity: 100 });
         this.enemies = this.add.existing(new Enemies(this.physics.world, this, { name: 'enemies' }, this.enemyBullets));
@@ -50,7 +57,7 @@ export class SceneMain extends Phaser.Scene {
             scale: { start: 1, end: 5, ease: 'Cubic.easeOut' }
         });
 
-        this.explosionPlayer = this.add.particles(0, 0, 'bullet', {
+        this.explosionModuleDestroyed = this.add.particles(0, 0, 'bullet', {
             alpha: { start: 1, end: 0, ease: 'Cubic.easeIn' },
             blendMode: Phaser.BlendModes.SCREEN,
             frequency: -1,
@@ -59,8 +66,7 @@ export class SceneMain extends Phaser.Scene {
             scale: { start: 1, end: 3, ease: 'Cubic.easeOut' }
         });
 
-        this.explosionDefense = this.add.particles(0, 0, 'modules', {
-            frame: [3],
+        this.explosionModuleHit = this.add.particles(0, 0, 'modules', {
             alpha: { start: 1, end: 0, ease: 'Cubic.easeIn' },
             blendMode: Phaser.BlendModes.SCREEN,
             frequency: -1,
@@ -73,8 +79,13 @@ export class SceneMain extends Phaser.Scene {
         this.physics.add.overlap(this.player.modules, this.enemyBullets, (module: Module, bullet: Bullet) => {
             module.onHit();
             bullet.disableBody(true, true);
-            const explosion = module.isAlive() ? this.explosionDefense : this.explosionPlayer;
-            explosion.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            if (module.isAlive()) {
+                this.explosionModuleHit.setEmitterFrame([module.moduleType]);
+                this.explosionModuleHit.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
+            else {
+                this.explosionModuleDestroyed.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
         });
 
         // Collision enemy/playerBullet
@@ -86,33 +97,81 @@ export class SceneMain extends Phaser.Scene {
 
         // Collision player/enemy
         this.physics.add.overlap(this.player.modules, this.enemies, (module: Module, enemy: Enemy) => {
-            module.onHit();
             enemy.onHit();
-            const explosion = module.isAlive() ? this.explosionDefense : this.explosionPlayer;
-            explosion.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
             this.explosionEnemy.emitParticleAt(enemy.x, enemy.y);
+            module.onHit();
+            if (module.isAlive()) {
+                this.explosionModuleHit.setEmitterFrame([module.moduleType]);
+                this.explosionModuleHit.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
+            else {
+                this.explosionModuleDestroyed.emitParticleAt(this.player.x + module.x, this.player.y + module.y);
+            }
         });
 
-        Global.setGameState(GameState.Shop);
+        Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+        Global.setGameState(GameState.GameStart);
 
-        // HACK: stop the fight and go to SHOP
-        this.input.keyboard.addKey('ESC').on('down', () => { this.hackGoToShop(); });
+        // HACK: End the current wave with a key for testing
+        this.input.keyboard.addKey('ESC').on('down', () => { this.hackEndWave(); });
     }
 
-    hackGoToShop() {
-        if (Global.getGameState() === GameState.Fight) {
-            // Remove all enemies
-            this.enemies.children.each((enemy: Enemy) => { enemy.onDestroy(); return true; });
-            this.enemies.clear(true, true);
-            // Remove all enemies bullets
-            this.enemyBullets.children.each((bullet: Bullet) => { bullet.disableBody(true, true); return true; });
-            // Go to SHOP
-            Global.setGameState(GameState.GoToShop);
+
+    onGameStateChange(state: GameState) {
+        if (state === GameState.Fight) {
+            Global.wave++;
+        }
+        else if (state === GameState.GameOver) {
+            // Stop the spawning of enemies
+            this.enemies.waveTotalEnemies = this.enemies.waveEnemiesSpawned;
+            this.scene.launch('SceneGameOver');
+        }
+        else if (state === GameState.GameStart) {
+            // Remove any remaining enemies
+            this.enemies.killAll();
+            Global.wave = 0;
+            Global.money = 0;
+            Global.moneyBonus = 0;
+            this.scene.launch('SceneGameStart');
+        }
+        else if (state === GameState.Shop) {
+            Global.money += Global.moneyBonus;
+            Global.moneyBonus = 0;
+            this.scene.launch('SceneShop');
         }
     }
 
+    hackEndWave() {
+        if (Global.adminMode && Global.getGameState() === GameState.Fight) {
+            // Force the end of the wave by stopping the spawning of enemies
+            this.enemies.waveTotalEnemies = this.enemies.waveEnemiesSpawned;
+            this.enemies.killAll();
+        }
+    }
+
+    textInfoNextTime = 0;
     update(time, delta) {
         this.player.update(time, delta);
+        this.enemies.update(time, delta);
+
+        if (time > this.textInfoNextTime) {
+            this.textInfoNextTime = time + 500;
+
+            let text = '';
+            if (Global.wave > 0) {
+                text = `Wave: ${Global.wave}`
+                if (Global.getGameState() == GameState.Fight) {
+                    if (this.enemies.waveTotalEnemies !== undefined) {
+                        text += `  ${(100 * (this.enemies.waveEnemiesSpawned - this.enemies.countActive()) / this.enemies.waveTotalEnemies).toFixed(0)} %`;
+                        if (Global.adminMode) {
+                            text += `  (${this.enemies.waveEnemiesSpawned}/${this.enemies.waveTotalEnemies})`
+                        }
+                    }
+                    text += `  Bonus: ${Global.moneyBonus} $`
+                }
+            }
+            this.infoText.setText(text);
+        }
     }
 }
 
