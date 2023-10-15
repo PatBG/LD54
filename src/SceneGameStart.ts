@@ -14,22 +14,25 @@ export class SceneGameStart extends Phaser.Scene {
     }
 
     create() {
-        this.textPos = new Phaser.Math.Vector2(Global.canvasCenter.x, Global.canvasCenter.y - 100);
+        this.textPos = new Phaser.Math.Vector2(Global.canvasCenter.x, Global.canvasCenter.y - 150);
 
-        this.add.text(this.textPos.x, this.textPos.y - 100, "Shoot'n Trade",
+        this.add.text(this.textPos.x, this.textPos.y - 50, "Shoot'n Trade",
             { font: '48px monospace', color: 'yellow' }).setOrigin(0.5);
 
         this.textColor = 'yellow';
         this.addText('Made by PatBG for LUDUM DARE #54 (October 2023)');
+        this.addText('Theme: "Limited Space"');
         this.addText('');
         this.addText('Phaser 3, TypeScript, Visual Studio Code,');
-        this.addText('with the help of officials Phaser 3 tutorials and Copilot');
+        this.addText('with the help of Phaser 3 tutorials and GitHub Copilot');
         this.addText('');
         this.addText('');
         this.textColor = 'aqua';
+        this.addText('Use the limited space of your ship to embark cannons, shields or merchandises.');
+        this.addText('Resell your merchandise farther to make profit and buy more space.');
+        this.addText('');
         this.addText('[Use arrow keys or mouse] to move ship');
         this.addText('[Use left shift or mouse button] to fire');
-        this.addText('Take the merchandise to the shop to sell it');
         this.addText('');
         this.addText('[Press any key] to start');
 
