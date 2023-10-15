@@ -99,22 +99,18 @@ export class Player extends Phaser.GameObjects.Container {
             this.inputIsKey = false;
         }
 
+        let v = new Phaser.Math.Vector2(0, 0);
         if (!this.inputIsKey) {
             const mouse = this.scene.input.activePointer;
             const playerRect = new Phaser.Geom.Rectangle(this.x - 8, this.y - 8, 16, 16);
             // if the mouse pointer is on the scene and not over the center ship, move the ship
             if (!playerRect.contains(mouse.x, mouse.y)) {
                 const angle = Phaser.Math.Angle.Between(this.x, this.y, this.scene.input.activePointer.x, this.scene.input.activePointer.y);
-                this.body.velocity.x = Math.cos(angle) * this.speed;
-                this.body.velocity.y = Math.sin(angle) * this.speed;
-            }
-            else {
-                this.body.velocity.x = 0;
-                this.body.velocity.y = 0;
+                v.x = Math.cos(angle) * this.speed;
+                v.y = Math.sin(angle) * this.speed;
             }
         }
         else {
-            let v = new Phaser.Math.Vector2(0, 0);
             if (Global.cursorKeys.left.isDown) {
                 v.x = -this.speed;
             }
@@ -134,10 +130,17 @@ export class Player extends Phaser.GameObjects.Container {
                 v.x *= 0.7071;
                 v.y *= 0.7071;
             }
-
-            this.body.velocity.x = v.x;
-            this.body.velocity.y = v.y;
         }
+
+        // Check screen bounds
+        if ((this.x < 0 && v.x < 0) || (this.x > Global.canvasSize.x && v.x > 0)) {
+            v.x = 0;
+        }
+        if ((this.y < 0 && v.y < 0) || (this.y > Global.canvasSize.y && v.y > 0)) {
+            v.y = 0;
+        }
+        this.body.velocity.x = v.x;
+        this.body.velocity.y = v.y;
     }
 
     static NewStructure(x: number, y: number) {
@@ -215,6 +218,13 @@ export class Player extends Phaser.GameObjects.Container {
             }
         }
         return false;
+    }
+
+    static getPosition(): Phaser.Math.Vector2 {
+        if (Player.singleton !== undefined) {
+            return new Phaser.Math.Vector2(Player.singleton.x, Player.singleton.y);
+        }
+        return new Phaser.Math.Vector2(0, 0);
     }
 
     removeAllStructures() {
