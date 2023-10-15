@@ -1,7 +1,9 @@
 import * as Phaser from 'phaser';
 import { SceneStarfield } from './SceneStarfield';
 import { SceneMain } from './SceneMain';
-import { SceneMenu } from './SceneMenu';
+import { SceneShop } from './SceneShop';
+import { SceneGameOver } from './SceneGameOver';
+import { SceneGameStart } from './SceneGameStart';
 
 const config: Phaser.Types.Core.GameConfig =
 {
@@ -10,9 +12,11 @@ const config: Phaser.Types.Core.GameConfig =
     height: 600,
     backgroundColor: 0x000000,
     scene: [ 
-        SceneStarfield,
         SceneMain, 
-        SceneMenu 
+        SceneStarfield,
+        SceneGameStart,
+        SceneShop,
+        SceneGameOver, 
     ],
     physics: {
         default: "arcade",
