@@ -27,6 +27,7 @@ export class SceneMain extends Phaser.Scene {
 
         this.load.image('enemy1', 'assets/enemy1.png');
         this.load.image('enemy2', 'assets/enemy2.png');
+        this.load.image('enemy3', 'assets/enemy3.png');
         this.load.image('enemyBullet', 'assets/enemyBullet.png');
 
         Global.initCanvasSize(this);
@@ -167,7 +168,7 @@ export class SceneMain extends Phaser.Scene {
                             text += `  (${this.enemies.waveEnemiesSpawned}/${this.enemies.waveTotalEnemies})`
                         }
                     }
-                    text += `  Bonus: ${Global.moneyBonus} $`
+                    text += `  Bonus: ${Global.moneyBonus} $`;
                 }
             }
             this.infoText.setText(text);
