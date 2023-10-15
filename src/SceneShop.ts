@@ -3,7 +3,7 @@ import { GameState, Global } from './Global';
 import { Player } from './Player';
 import { Module, ModuleType, Modules } from './Modules';
 
-export class SceneMenu extends Phaser.Scene {
+export class SceneShop extends Phaser.Scene {
 
     menuMoney: Phaser.GameObjects.Text;
     menuStructure: Phaser.GameObjects.Text;
@@ -14,19 +14,18 @@ export class SceneMenu extends Phaser.Scene {
     menuUpgrade: Phaser.GameObjects.Text;
     menuSell: Phaser.GameObjects.Text;
     menuGo: Phaser.GameObjects.Text;
+    menuTextPos: Phaser.Math.Vector2;
 
-    styleActiveColor = 'aqua';
-    styleActive = { font: '16px monospace', color: this.styleActiveColor };
-    styleGrayedColor = 'gray';
-    styleGrayed = { font: '16px monospace', color: this.styleGrayedColor };
+    readonly styleActiveColor = 'aqua';
+    readonly styleActive = { font: '16px monospace', color: this.styleActiveColor };
+    readonly styleGrayedColor = 'gray';
+    readonly styleGrayed = { font: '16px monospace', color: this.styleGrayedColor };
 
-    cursorModule = new Phaser.Math.Vector2(0, 0);
+    cursorModule:Phaser.Math.Vector2; 
     cursorImage: Phaser.GameObjects.Image;
 
-    money = 10000;
-
     constructor() {
-        super({ key: 'SceneMenu', active: true });
+        super({ key: 'SceneShop' });
     }
 
     preload() {
@@ -34,7 +33,13 @@ export class SceneMenu extends Phaser.Scene {
     }
 
     create() {
-        this.menuMoney = this.addMenuText(`Money : ${this.money} $`);
+        this.menuTextPos = new Phaser.Math.Vector2(100, 100);
+        this.cursorModule = new Phaser.Math.Vector2(0, 0);
+
+        this.add.text(Global.canvasCenter.x, 70, 'SHOP',
+            { font: '48px monospace', color: 'aqua' }).setOrigin(0.5);
+
+        this.menuMoney = this.addMenuText(`Money : ${Global.money} $`);
         this.addMenuText('');
         this.menuMoney.setStyle(this.styleActive);
         this.menuStructure = this.addMenuText(`[T] buy structure : ${Modules.buyPriceStructure} $`);
@@ -76,22 +81,11 @@ export class SceneMenu extends Phaser.Scene {
             duration: 350
         });
 
-        Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+        this.cursorModule.set(0, 0);
+        this.refreshCursor();
+        this.refreshMenu();
     }
 
-    onGameStateChange(state: GameState) {
-        if (state === GameState.Shop) {
-            this.cursorModule.set(0, 0);
-            this.refreshCursor();
-            this.scene.resume();
-            this.scene.setVisible(true);
-        } else {
-            this.scene.pause();
-            this.scene.setVisible(false);
-        }
-    }
-
-    menuTextPos = new Phaser.Math.Vector2(100, 100);
     addMenuText(text: string): Phaser.GameObjects.Text {
         this.menuTextPos.y += 20;
         return this.add.text(this.menuTextPos.x, this.menuTextPos.y, text);
@@ -100,7 +94,7 @@ export class SceneMenu extends Phaser.Scene {
     onBuyStructure() {
         if (this.menuStructure.style.color === this.styleActiveColor) {
             Player.NewStructure(this.cursorModule.x, this.cursorModule.y);
-            this.money -= Modules.buyPriceStructure;
+            Global.money -= Modules.buyPriceStructure;
             this.refreshMenu();
         }
     }
@@ -108,7 +102,7 @@ export class SceneMenu extends Phaser.Scene {
     onBuyModule(text: Phaser.GameObjects.Text, moduleType: ModuleType) {
         if (text.style.color === this.styleActiveColor) {
             Player.NewModule(this.cursorModule.x, this.cursorModule.y, moduleType);
-            this.money -= Modules.buyPrice(moduleType, 1);
+            Global.money -= Modules.buyPrice(moduleType, 1);
             this.refreshMenu();
         }
     }
@@ -125,7 +119,7 @@ export class SceneMenu extends Phaser.Scene {
     onUpgrade() {
         if (this.menuUpgrade.style.color === this.styleActiveColor) {
             const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
-            this.money -= Modules.priceUpgrade(module.moduleType, module.level);
+            Global.money -= Modules.priceUpgrade(module.moduleType, module.level);
             module.level++;
             this.refreshMenu();
         }
@@ -135,11 +129,11 @@ export class SceneMenu extends Phaser.Scene {
         if (this.menuSell.style.color === this.styleActiveColor) {
             const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined) {
-                this.money += Modules.sellPrice(module.moduleType, module.level);
+                Global.money += Modules.sellPrice(module.moduleType, module.level);
                 Player.RemoveModule(this.cursorModule.x, this.cursorModule.y);
             }
             else if (Player.IsStructure(this.cursorModule.x, this.cursorModule.y)) {
-                this.money += Modules.SellPriceStructure;
+                Global.money += Modules.SellPriceStructure;
                 Player.RemoveStructure(this.cursorModule.x, this.cursorModule.y);
             }
             this.refreshMenu();
@@ -161,10 +155,11 @@ export class SceneMenu extends Phaser.Scene {
 
     onQuit() {
         Global.setGameState(GameState.Fight);
+        this.scene.stop();
     }
 
     refreshMenu() {
-        this.menuMoney.text = `Money : ${this.money} $`;
+        this.menuMoney.text = `Money : ${Global.money} $`;
 
         const isStructure = Player.IsStructure(this.cursorModule.x, this.cursorModule.y);
         const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
@@ -172,7 +167,7 @@ export class SceneMenu extends Phaser.Scene {
         // menuStructure
         let style = this.styleGrayed;
         if (!isStructure) {
-            if (this.money >= Modules.buyPriceStructure) {
+            if (Global.money >= Modules.buyPriceStructure) {
                 for (let x = -1; x <= 1; x += 2) {
                     if (Player.IsStructure(this.cursorModule.x + x, this.cursorModule.y)) {
                         style = this.styleActive;
@@ -190,7 +185,7 @@ export class SceneMenu extends Phaser.Scene {
         // menuDefense
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (this.money >= Modules.buyPrice(ModuleType.Defense, 1)) {
+            if (Global.money >= Modules.buyPrice(ModuleType.Defense, 1)) {
                 style = this.styleActive;
             }
         }
@@ -199,7 +194,7 @@ export class SceneMenu extends Phaser.Scene {
         // menuMerchandise
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (this.money >= Modules.buyPrice(ModuleType.Merchandise, 1)) {
+            if (Global.money >= Modules.buyPrice(ModuleType.Merchandise, 1)) {
                 style = this.styleActive;
             }
         }
@@ -208,7 +203,7 @@ export class SceneMenu extends Phaser.Scene {
         // menuCannon
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (this.money >= Modules.buyPrice(ModuleType.Cannon, 1)) {
+            if (Global.money >= Modules.buyPrice(ModuleType.Cannon, 1)) {
                 style = this.styleActive;
             }
         }
@@ -226,10 +221,12 @@ export class SceneMenu extends Phaser.Scene {
         // menuUpgrade
         style = this.styleGrayed;
         let text = '[U] Upgrade';
-        if (module != undefined && this.money >= Modules.priceUpgrade(module.moduleType, module.level)) {
-            style = this.styleActive;
+        if (module != undefined) {
             text += ` to level ${module.level + 1} : ${Modules.priceUpgrade(module.moduleType, module.level)} $`
                 + ` (${this.actionDescription(module.moduleType, module.level + 1)}) :`;
+            if (Global.money >= Modules.priceUpgrade(module.moduleType, module.level)) {
+                style = this.styleActive;
+            }
         }
         this.menuUpgrade.setStyle(style);
         this.menuUpgrade.text = text;
@@ -274,6 +271,6 @@ export class SceneMenu extends Phaser.Scene {
     }
 
     update() {
-        this.refreshMenu();
+        //this.refreshMenu();
     }
 }
