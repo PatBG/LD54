@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { Global } from './Global';
 import { Bullets } from './Bullets';
+import { Sounds } from './Sounds';
 
 export enum ModuleType {
     Merchandise = 1,
@@ -34,7 +35,7 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         // Initialize life
         if (this.moduleType === ModuleType.Defense) {
             this.life = 1 + this.level;
-        } 
+        }
         else {
             this.life = 2;
         }
@@ -47,9 +48,8 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         }
         // Remove low life effect if set
         if (this.tweenLowLife != undefined) {
-            // this.tweenLowLife.restart();            // Restart the tween to reset altered properties
             this.tweenLowLife.remove();
-            // this.tweenLowLife = undefined;
+            this.alpha = 1;                             // Reset alpha to 1
         }
     }
 
@@ -64,9 +64,11 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
                 yoyo: true,
                 repeat: -1,
             });
+            Sounds.PlayerShield.play();
         }
         else if (this.life <= 0) {
             this.onDestroy();
+            Sounds.PlayerExplosion.play();
         }
     }
 
@@ -98,14 +100,20 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
 
     update(time, delta) {
         if (this.moduleType === ModuleType.Cannon) {
-            if (this.keyFire.isDown && time >= this.timeNextFire) {
+            const keyFire = this.keyFire.isDown || this.scene.input.activePointer.isDown;
+            if (keyFire && time >= this.timeNextFire) {
                 this.timeNextFire = time + 1000 / Modules.cannonFireRate(this.level);
-                const velocity = Modules.cannonBulletVelocity(this.level);
-                const angle = this.angleCannon - Math.PI / 2;
-                this.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
-                    Math.cos(angle) * velocity, Math.sin(angle) * velocity);
+                this.onFire();
             }
         }
+    }
+
+    onFire() {
+        const velocity = Modules.cannonBulletVelocity(this.level);
+        const angle = this.angleCannon - Math.PI / 2;
+        this.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
+            Math.cos(angle) * velocity, Math.sin(angle) * velocity);
+        Sounds.PlayerFire.play();
     }
 }
 
