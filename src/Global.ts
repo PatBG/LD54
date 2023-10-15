@@ -10,20 +10,25 @@ export enum GameState {
 }
 
 export class Global {
-    
-    public static canvasSize: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
-    public static PlayerPosInShop: Phaser.Math.Vector2  = new Phaser.Math.Vector2();
+
+    public static canvasSize: Phaser.Math.Vector2;
+    public static canvasCenter: Phaser.Math.Vector2;
+    public static PlayerPosInShop: Phaser.Math.Vector2;
 
     public static initCanvasSize(scene: Phaser.Scene) {
-        Global.canvasSize.x = scene.sys.game.canvas.width;
-        Global.canvasSize.y = scene.sys.game.canvas.height;
-        Global.PlayerPosInShop.x = Global.canvasSize.x / 2;
-        Global.PlayerPosInShop.y = Global.canvasSize.y - 100;
+        Global.canvasSize = new Phaser.Math.Vector2(scene.sys.game.canvas.width, scene.sys.game.canvas.height);
+        Global.canvasCenter = new Phaser.Math.Vector2(Global.canvasSize.x / 2, Global.canvasSize.y / 2);
+        Global.PlayerPosInShop = new Phaser.Math.Vector2(Global.canvasSize.x / 2, Global.canvasSize.y - 100);
     }
 
     public static cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
 
     public static wave = 0;
+
+    public static money = 0;
+    public static moneyBonus = 0;
+
+    public static adminMode = false;
 
     // Game state
     private static gameState: GameState = GameState.GameStart;
