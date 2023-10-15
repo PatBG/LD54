@@ -113,7 +113,7 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         const angle = this.angleCannon - Math.PI / 2;
         this.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
             Math.cos(angle) * velocity, Math.sin(angle) * velocity);
-        Sounds.PlayerFire.play();
+        Sounds.PlayerFire.play({ volume: 0.5 });
     }
 }
 
@@ -134,13 +134,21 @@ export class Modules extends Phaser.Physics.Arcade.Group {
         module.onCreate(this.bullets);
     }
 
+    static sumNumbers(n: number): number {
+        let sum = 0;
+        for (let i = 1; i <= n; i++) {
+            sum += i;
+        }
+        return sum;
+    }
+
     static readonly buyPriceStructure = 50;
     static readonly SellPriceStructure = 25;
     static buyPrice(moduleType: ModuleType, level: number): number {
         switch (moduleType) {
             case ModuleType.Cannon: return 100 + 100 * (level - 1) + 100 * Math.floor(level / 5);
             case ModuleType.Defense: return 50 + 100 * (level - 1);
-            case ModuleType.Merchandise: return 50 * Math.pow(2, level - 1);
+            case ModuleType.Merchandise: return 100 + 50 * Modules.sumNumbers(level - 1);
             default: return 0;
         }
     }
