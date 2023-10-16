@@ -21,7 +21,6 @@ export class SceneMain extends Phaser.Scene {
     }
 
     preload() {
-        // this.load.image('structure', 'assets/structure.png');
         this.load.image('bullet', 'assets/bullet.png');
         this.load.spritesheet('modules', 'assets/modules.png', { frameWidth: 16, frameHeight: 16 });
 
@@ -113,6 +112,8 @@ export class SceneMain extends Phaser.Scene {
         Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
         Global.setGameState(GameState.GameStart);
 
+        this.input.keyboard.addKey('W').on('down', () => { this.onPause(); });
+
         // HACK: End the current wave with a key for testing
         this.input.keyboard.addKey('ESC').on('down', () => { this.hackEndWave(); });
     }
@@ -147,6 +148,14 @@ export class SceneMain extends Phaser.Scene {
             // Force the end of the wave by stopping the spawning of enemies
             this.enemies.waveTotalEnemies = this.enemies.waveEnemiesSpawned;
             this.enemies.killAll();
+        }
+    }
+
+    onPause() {
+        if (Global.getGameState() === GameState.Fight) {
+            this.scene.pause();
+            this.scene.pause('SceneStarfield');
+            this.scene.resume('ScenePause');
         }
     }
 

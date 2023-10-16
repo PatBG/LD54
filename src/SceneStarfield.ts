@@ -15,7 +15,7 @@ export class SceneStarfield extends Phaser.Scene {
     zz = [];
 
     constructor() {
-        super({ key: 'Starfield', active: true });
+        super({ key: 'SceneStarfield', active: true });
     }
 
     preload() {

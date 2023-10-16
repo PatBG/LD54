@@ -4,6 +4,7 @@ import { SceneMain } from './SceneMain';
 import { SceneShop } from './SceneShop';
 import { SceneGameOver } from './SceneGameOver';
 import { SceneGameStart } from './SceneGameStart';
+import { ScenePause } from './ScenePause';
 
 const config: Phaser.Types.Core.GameConfig =
 {
@@ -16,7 +17,8 @@ const config: Phaser.Types.Core.GameConfig =
         SceneStarfield,
         SceneGameStart,
         SceneShop,
-        SceneGameOver, 
+        SceneGameOver,
+        ScenePause, 
     ],
     physics: {
         default: "arcade",
