@@ -14,7 +14,8 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     level = 1;
     life = 1;
     bullets: Bullets;
-    keyFire: Phaser.Input.Keyboard.Key;
+    keyFire1: Phaser.Input.Keyboard.Key;
+    keyFire2: Phaser.Input.Keyboard.Key;
     timeNextFire = 0;
     angleCannon = 0;
     tweenLowLife: Phaser.Tweens.Tween;
@@ -27,7 +28,8 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     onCreate(bullets: Bullets) {
         if (this.moduleType === ModuleType.Cannon) {
             this.bullets = bullets;
-            this.keyFire = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+            this.keyFire1 = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+            this.keyFire2 = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         }
     }
 
@@ -100,7 +102,7 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
 
     update(time, delta) {
         if (this.moduleType === ModuleType.Cannon) {
-            const keyFire = this.keyFire.isDown || this.scene.input.activePointer.isDown;
+            const keyFire = this.keyFire1.isDown || this.keyFire2.isDown || this.scene.input.activePointer.isDown;
             if (keyFire && time >= this.timeNextFire) {
                 this.timeNextFire = time + 1000 / Modules.cannonFireRate(this.level);
                 this.onFire();

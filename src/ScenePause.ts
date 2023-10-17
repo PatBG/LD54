@@ -7,7 +7,7 @@ export class ScenePause extends Phaser.Scene {
     }
 
     create() {
-        this.input.keyboard.addKey('W').on('down', () => {
+        this.input.keyboard.addKey('P').on('down', () => {
             this.scene.pause();
             this.scene.resume('SceneStarfield');
             this.scene.resume('SceneMain');

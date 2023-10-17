@@ -15,6 +15,13 @@ export class Player extends Phaser.GameObjects.Container {
     PlayerFire: Phaser.Sound.BaseSound;
     PlayerExplosion: Phaser.Sound.BaseSound;
 
+    keyLeft: Phaser.Input.Keyboard.Key;
+    keyLeft2: Phaser.Input.Keyboard.Key;
+    keyRight: Phaser.Input.Keyboard.Key;
+    keyUp: Phaser.Input.Keyboard.Key;
+    keyUp2: Phaser.Input.Keyboard.Key;
+    keyDown: Phaser.Input.Keyboard.Key;
+
     constructor(scene: Phaser.Scene, x: number, y: number, bullets: Bullets) {
         super(scene, x, y);
         this.bullets = bullets;
@@ -24,6 +31,13 @@ export class Player extends Phaser.GameObjects.Container {
         scene.physics.world.enableBody(this);
         // this.body.setCollideWorldBounds(true);
         Global.cursorKeys = this.scene.input.keyboard.createCursorKeys();
+
+        this.keyLeft = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyLeft2 = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+        this.keyRight = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+        this.keyUp = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.keyUp2 = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+        this.keyDown = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
         this.modules = this.scene.add.existing(new Modules(this.scene.physics.world, this.scene, { name: 'modulesContainer' }, this.bullets));
 
@@ -111,17 +125,17 @@ export class Player extends Phaser.GameObjects.Container {
             }
         }
         else {
-            if (Global.cursorKeys.left.isDown) {
+            if (this.keyLeft.isDown || this.keyLeft2.isDown || Global.cursorKeys.left.isDown) {
                 v.x = -this.speed;
             }
-            else if (Global.cursorKeys.right.isDown) {
+            else if (this.keyRight.isDown || Global.cursorKeys.right.isDown) {
                 v.x = this.speed;
             }
 
-            if (Global.cursorKeys.up.isDown) {
+            if (this.keyUp.isDown || this.keyUp2.isDown || Global.cursorKeys.up.isDown) {
                 v.y = -this.speed;
             }
-            else if (Global.cursorKeys.down.isDown) {
+            else if (this.keyDown.isDown || Global.cursorKeys.down.isDown) {
                 v.y = this.speed;
             }
 

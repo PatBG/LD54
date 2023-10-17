@@ -112,7 +112,7 @@ export class SceneMain extends Phaser.Scene {
         Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
         Global.setGameState(GameState.GameStart);
 
-        this.input.keyboard.addKey('W').on('down', () => { this.onPause(); });
+        this.input.keyboard.addKey('P').on('down', () => { this.onPause(); });
 
         // HACK: End the current wave with a key for testing
         this.input.keyboard.addKey('ESC').on('down', () => { this.hackEndWave(); });

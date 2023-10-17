@@ -31,8 +31,9 @@ export class SceneGameStart extends Phaser.Scene {
         this.addText('Use the limited space of your ship to embark cannons, shields or merchandises.');
         this.addText('Resell your merchandise farther to make profit and buy more space.');
         this.addText('');
-        this.addText('[Use arrow keys or mouse] to move ship');
-        this.addText('[Use left shift or mouse button] to fire');
+        this.addText('[WASD, ZQSD, Arrow Keys or Mouse] to move ship');
+        this.addText('[Space, Left Shift or Mouse Button] to fire');
+        this.addText('[P] to pause or resume the game');
         this.addText('');
         this.addText('[Press any key] to start');
 
