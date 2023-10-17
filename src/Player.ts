@@ -101,8 +101,10 @@ export class Player extends Phaser.GameObjects.Container {
         // Update modules
         this.modules.update(time, delta);
 
-        if (Global.cursorKeys.left.isDown || Global.cursorKeys.right.isDown
-            || Global.cursorKeys.up.isDown || Global.cursorKeys.down.isDown
+        if (Global.cursorKeys.left.isDown || this.keyLeft.isDown || this.keyLeft2.isDown
+            || Global.cursorKeys.right.isDown
+            || Global.cursorKeys.up.isDown || this.keyUp.isDown || this.keyUp2.isDown
+            || Global.cursorKeys.down.isDown
             || !this.scene.input.isOver) {
             this.inputIsKey = true;
         }
