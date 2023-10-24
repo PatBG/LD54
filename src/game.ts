@@ -13,8 +13,8 @@ const config: Phaser.Types.Core.GameConfig =
     height: 600,
     backgroundColor: 0x000000,
     scene: [ 
-        SceneMain, 
         SceneStarfield,
+        SceneMain, 
         SceneGameStart,
         SceneShop,
         SceneGameOver,
