@@ -1,9 +1,9 @@
 import * as Phaser from 'phaser';
-import { GameState, Global } from './Global';
+import { GameState, GameManager } from './GameManager';
 import { Player } from './Player';
 import { Bullets, Bullet } from './Bullets';
 import { Enemies, Enemy } from './Enemies';
-import { Sounds } from './Sounds';
+import { SoundManager } from './SoundManager';
 import { Modules, Module, ModuleType } from './Modules';
 
 export class SceneMain extends Phaser.Scene {
@@ -23,18 +23,19 @@ export class SceneMain extends Phaser.Scene {
     preload() {
         this.load.image('bullet', 'assets/bullet.png');
         this.load.spritesheet('modules', 'assets/modules.png', { frameWidth: 16, frameHeight: 16 });
+        GameManager.getInstance().moduleSize = new Phaser.Math.Vector2(16, 16);
 
         this.load.image('enemy1', 'assets/enemy1.png');
         this.load.image('enemy2', 'assets/enemy2.png');
         this.load.image('enemy3', 'assets/enemy3.png');
         this.load.image('enemyBullet', 'assets/enemyBullet.png');
 
-        Global.initCanvasSize(this);
-        Sounds.preload(this);
+        GameManager.getInstance().initCanvasSize(this);
+        SoundManager.getInstance().preload(this);
     }
 
     create() {
-        Sounds.create(this);
+        SoundManager.getInstance().create(this);
 
         this.infoText = this.add.text(5, 5, '', { font: '16px monospace', color: 'white' });
 
@@ -44,7 +45,7 @@ export class SceneMain extends Phaser.Scene {
 
         this.bullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'bullets' }));
         this.bullets.createMultiple({ key: 'bullet', quantity: 100 });
-        this.player = new Player(this, Global.PlayerPosInShop.x, Global.PlayerPosInShop.y, this.bullets);
+        this.player = new Player(this, GameManager.getInstance().playerPosInShop.x, GameManager.getInstance().playerPosInShop.y, this.bullets);
 
         this.physics.world.on('worldbounds', (body) => { body.gameObject.onWorldBounds(); });
 
@@ -109,8 +110,8 @@ export class SceneMain extends Phaser.Scene {
             }
         });
 
-        Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
-        Global.setGameState(GameState.GameStart);
+        GameManager.getInstance().onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+        GameManager.getInstance().setGameState(GameState.GameStart);
 
         this.input.keyboard.addKey('P').on('down', () => { this.onPause(); });
 
@@ -121,7 +122,7 @@ export class SceneMain extends Phaser.Scene {
 
     onGameStateChange(state: GameState) {
         if (state === GameState.Fight) {
-            Global.wave++;
+            GameManager.getInstance().wave++;
         }
         else if (state === GameState.GameOver) {
             // Stop the spawning of enemies
@@ -131,20 +132,20 @@ export class SceneMain extends Phaser.Scene {
         else if (state === GameState.GameStart) {
             // Remove any remaining enemies
             this.enemies.killAll();
-            Global.wave = 0;
-            Global.money = 0;
-            Global.moneyBonus = 0;
+            GameManager.getInstance().wave = 0;
+            GameManager.getInstance().money = 0;
+            GameManager.getInstance().moneyBonus = 0;
             this.scene.launch('SceneGameStart');
         }
         else if (state === GameState.Shop) {
-            Global.money += Global.moneyBonus;
-            Global.moneyBonus = 0;
+            GameManager.getInstance().money += GameManager.getInstance().moneyBonus;
+            GameManager.getInstance().moneyBonus = 0;
             this.scene.launch('SceneShop');
         }
     }
 
     hackEndWave() {
-        if (Global.adminMode && Global.getGameState() === GameState.Fight) {
+        if (GameManager.getInstance().adminMode && GameManager.getInstance().getGameState() === GameState.Fight) {
             // Force the end of the wave by stopping the spawning of enemies
             this.enemies.waveTotalEnemies = this.enemies.waveEnemiesSpawned;
             this.enemies.killAll();
@@ -152,7 +153,7 @@ export class SceneMain extends Phaser.Scene {
     }
 
     onPause() {
-        if (Global.getGameState() === GameState.Fight) {
+        if (GameManager.getInstance().getGameState() === GameState.Fight) {
             this.scene.pause();
             this.scene.pause('SceneStarfield');
             this.scene.resume('ScenePause');
@@ -168,16 +169,16 @@ export class SceneMain extends Phaser.Scene {
             this.textInfoNextTime = time + 500;
 
             let text = '';
-            if (Global.wave > 0) {
-                text = `Wave: ${Global.wave}`
-                if (Global.getGameState() == GameState.Fight) {
+            if (GameManager.getInstance().wave > 0) {
+                text = `Wave: ${GameManager.getInstance().wave}`
+                if (GameManager.getInstance().getGameState() == GameState.Fight) {
                     if (this.enemies.waveTotalEnemies !== undefined) {
                         text += `  ${(100 * (this.enemies.waveEnemiesSpawned - this.enemies.countActive()) / this.enemies.waveTotalEnemies).toFixed(0)} %`;
-                        if (Global.adminMode) {
+                        if (GameManager.getInstance().adminMode) {
                             text += `  (${this.enemies.waveEnemiesSpawned}/${this.enemies.waveTotalEnemies})`
                         }
                     }
-                    text += `  Bonus: ${Global.moneyBonus} $`;
+                    text += `  Bonus: ${GameManager.getInstance().moneyBonus} $`;
                 }
             }
             this.infoText.setText(text);

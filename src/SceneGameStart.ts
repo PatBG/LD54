@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { GameState, Global } from './Global';
+import { GameState, GameManager } from './GameManager';
 
 export class SceneGameStart extends Phaser.Scene {
     textPos: Phaser.Math.Vector2;
@@ -14,7 +14,7 @@ export class SceneGameStart extends Phaser.Scene {
     }
 
     create() {
-        this.textPos = new Phaser.Math.Vector2(Global.canvasCenter.x, Global.canvasCenter.y - 150);
+        this.textPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y - 150);
 
         this.add.text(this.textPos.x, this.textPos.y - 50, "Shoot'n Trade",
             { font: '48px monospace', color: 'yellow' }).setOrigin(0.5);
@@ -52,8 +52,8 @@ export class SceneGameStart extends Phaser.Scene {
     }
 
     onStart() {
-        Global.adminMode = this.adminKey.isDown;
-        Global.setGameState(GameState.Fight);
+        GameManager.getInstance().adminMode = this.adminKey.isDown;
+        GameManager.getInstance().setGameState(GameState.Fight);
         this.scene.stop();
     }
 }

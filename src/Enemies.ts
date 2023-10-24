@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { Bullet, Bullets } from './Bullets';
-import { GameState, Global } from './Global';
-import { Sounds } from './Sounds';
+import { GameState, GameManager } from './GameManager';
+import { SoundManager } from './SoundManager';
 import { Player } from './Player';
 
 export class Enemy extends Phaser.Physics.Arcade.Image {
@@ -49,7 +49,7 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
         }
         else {  // enemy3
             let vx = this.shipVelocity;
-            if (this.x > Global.canvasCenter.x) {
+            if (this.x > GameManager.getInstance().canvasCenter.x) {
                 this.rotation = Math.PI;    // Face the center of the screen
                 vx = -this.shipVelocity;
             }
@@ -74,7 +74,7 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
         const marginY = 50;
         const marginX = 200;
         // Remove this enemy when it is offscreen on the side or bottom
-        if (this.x < 0 - marginX || this.x > Global.canvasSize.x + marginX || this.y > Global.canvasSize.y + marginY) {
+        if (this.x < 0 - marginX || this.x > GameManager.getInstance().canvasSize.x + marginX || this.y > GameManager.getInstance().canvasSize.y + marginY) {
             this.onDestroy();
         }
     }
@@ -82,8 +82,8 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
     onHit() {
         this.onDestroy();
         // Bonus when an enemy is destroyed
-        Global.moneyBonus += 5;
-        Sounds.EnemyExplosion.play();
+        GameManager.getInstance().moneyBonus += 5;
+        SoundManager.getInstance().EnemyExplosion.play();
     }
 
     onFire() {
@@ -100,7 +100,7 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
             v.y = Math.sin(this.rotation + 0.5 * Math.PI) * this.bulletVelocity;
         }
         this.bullets.fire(this.x, this.y, v.x, v.y);
-        //Sounds.EnemyFire.play();
+        //SoundManager.getInstance().EnemyFire.play();      // Too much noise
     }
 
     onDestroy() {
@@ -127,21 +127,21 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
         );
         this.bullets = bullets;
 
-        Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+        GameManager.getInstance().onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
     }
 
     callbackSpawnEnemies() {
         if (this.waveEnemiesSpawned < this.waveTotalEnemies) {
-            if (Global.wave > 3 && this.rnd.between(0, 100 + Global.wave) < Global.wave) {
+            if (GameManager.getInstance().wave > 3 && this.rnd.between(0, 100 + GameManager.getInstance().wave) < GameManager.getInstance().wave) {
                 this.spawn(
-                    this.rnd.pick([-100, Global.canvasSize.x + 100]),
-                    Global.canvasCenter.y + this.rnd.between(-50, 50),
+                    this.rnd.pick([-100, GameManager.getInstance().canvasSize.x + 100]),
+                    GameManager.getInstance().canvasCenter.y + this.rnd.between(-50, 50),
                     'enemy3');
                 this.waveEnemiesSpawned++;
             }
             else {
                 const firstEnemy = this.spawn(
-                    this.rnd.between(50, Global.canvasSize.x - 50),
+                    this.rnd.between(50, GameManager.getInstance().canvasSize.x - 50),
                     this.rnd.between(-100, -50),
                     this.rnd.pick([
                         'enemy1',
@@ -149,29 +149,31 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
                     ]));
                 this.waveEnemiesSpawned++;
                 // Spawn a second enemy with increasing probability as the wave number increases
-                if (Global.wave > 1 && this.waveEnemiesSpawned < this.waveTotalEnemies && this.rnd.between(0, 100 + Global.wave) < Global.wave) {
+                if (GameManager.getInstance().wave > 1 && this.waveEnemiesSpawned < this.waveTotalEnemies
+                    && this.rnd.between(0, 100 + GameManager.getInstance().wave) < GameManager.getInstance().wave) {
                     this.spawn(firstEnemy.x + 50, firstEnemy.y, firstEnemy.texture.key);
                     this.waveEnemiesSpawned++;
                 }
 
                 // Spawn a third enemy with increasing probability as the wave number increases
-                if (Global.wave > 2 && this.waveEnemiesSpawned < this.waveTotalEnemies && this.rnd.between(0, 100 + Global.wave) < Global.wave) {
+                if (GameManager.getInstance().wave > 2 && this.waveEnemiesSpawned < this.waveTotalEnemies
+                    && this.rnd.between(0, 100 + GameManager.getInstance().wave) < GameManager.getInstance().wave) {
                     this.spawn(firstEnemy.x - 50, firstEnemy.y, firstEnemy.texture.key);
                     this.waveEnemiesSpawned++;
                 }
             }
 
             // Recall this function until all enemies are spawned
-            this.scene.time.delayedCall(((50 * 750) / (50 + Global.wave)) + this.rnd.between(0, 100),
+            this.scene.time.delayedCall(((50 * 750) / (50 + GameManager.getInstance().wave)) + this.rnd.between(0, 100),
                 () => { this.callbackSpawnEnemies(); });
         }
     }
 
     onGameStateChange(state: GameState) {
-        if (Global.getGameState() === GameState.Fight) {
+        if (GameManager.getInstance().getGameState() === GameState.Fight) {
             // Start a new wave 
-            this.rnd = new Phaser.Math.RandomDataGenerator([`${Global.wave}`]);
-            this.waveTotalEnemies = 30 + Global.wave * 3;
+            this.rnd = new Phaser.Math.RandomDataGenerator([`${GameManager.getInstance().wave}`]);
+            this.waveTotalEnemies = 30 + GameManager.getInstance().wave * 3;
             this.waveEnemiesSpawned = 0;
             this.callbackSpawnEnemies();
         }
@@ -196,10 +198,10 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
     }
 
     update(time, delta) {
-        if (Global.getGameState() !== GameState.Fight) return;
+        if (GameManager.getInstance().getGameState() !== GameState.Fight) return;
 
         if (this.waveEnemiesSpawned >= this.waveTotalEnemies && this.countActive() === 0 && this.bullets.countActive() === 0) {
-            Global.setGameState(GameState.EndWave);
+            GameManager.getInstance().setGameState(GameState.EndWave);
         }
     }
 }

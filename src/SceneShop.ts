@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { GameState, Global } from './Global';
+import { GameState, GameManager } from './GameManager';
 import { Player } from './Player';
 import { Module, ModuleType, Modules } from './Modules';
 
@@ -24,6 +24,8 @@ export class SceneShop extends Phaser.Scene {
     cursorModule:Phaser.Math.Vector2; 
     cursorImage: Phaser.GameObjects.Image;
 
+    modifierKey: Phaser.Input.Keyboard.Key;
+
     constructor() {
         super({ key: 'SceneShop' });
     }
@@ -36,10 +38,10 @@ export class SceneShop extends Phaser.Scene {
         this.menuTextPos = new Phaser.Math.Vector2(100, 100);
         this.cursorModule = new Phaser.Math.Vector2(0, 0);
 
-        this.add.text(Global.canvasCenter.x, 70, 'SHOP',
+        this.add.text(GameManager.getInstance().canvasCenter.x, 70, 'SHOP',
             { font: '48px monospace', color: 'aqua' }).setOrigin(0.5);
 
-        this.menuMoney = this.addMenuText(`Money : ${Global.money} $`);
+        this.menuMoney = this.addMenuText(`Money : ${GameManager.getInstance().money} $`);
         this.addMenuText('');
         this.menuMoney.setStyle(this.styleActive);
         this.menuStructure = this.addMenuText(`[T] buy structure : ${Modules.buyPriceStructure} $`);
@@ -71,7 +73,10 @@ export class SceneShop extends Phaser.Scene {
         this.input.keyboard.addKey('UP').on('down', () => { this.onMoveCursor(0, -1); });
         this.input.keyboard.addKey('DOWN').on('down', () => { this.onMoveCursor(0, 1); });
 
-        this.cursorImage = this.add.image(Global.PlayerPosInShop.x, Global.PlayerPosInShop.y, 'cursor');
+        this.modifierKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+
+        this.cursorImage = this.add.image(GameManager.getInstance().playerPosInShop.x, GameManager.getInstance().playerPosInShop.y, 'cursor');
+        this.cursorImage.scale = GameManager.getInstance().playerScale;
         this.tweens.add({
             targets: this.cursorImage,
             alpha: 0.2,
@@ -94,7 +99,7 @@ export class SceneShop extends Phaser.Scene {
     onBuyStructure() {
         if (this.menuStructure.style.color === this.styleActiveColor) {
             Player.NewStructure(this.cursorModule.x, this.cursorModule.y);
-            Global.money -= Modules.buyPriceStructure;
+            GameManager.getInstance().money -= Modules.buyPriceStructure;
             this.refreshMenu();
         }
     }
@@ -102,7 +107,7 @@ export class SceneShop extends Phaser.Scene {
     onBuyModule(text: Phaser.GameObjects.Text, moduleType: ModuleType) {
         if (text.style.color === this.styleActiveColor) {
             Player.NewModule(this.cursorModule.x, this.cursorModule.y, moduleType);
-            Global.money -= Modules.buyPrice(moduleType, 1);
+            GameManager.getInstance().money -= Modules.buyPrice(moduleType, 1);
             this.refreshMenu();
         }
     }
@@ -111,7 +116,7 @@ export class SceneShop extends Phaser.Scene {
         if (this.menuRotate.style.color === this.styleActiveColor) {
             const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined && module.moduleType === ModuleType.Cannon) {
-                module.addAngleCannon(Global.cursorKeys.shift.isDown ? -Math.PI / 8 : Math.PI / 8);
+                module.addAngleCannon(this.modifierKey.isDown ? -Math.PI / 8 : Math.PI / 8);
             }
         }
     }
@@ -119,7 +124,7 @@ export class SceneShop extends Phaser.Scene {
     onUpgrade() {
         if (this.menuUpgrade.style.color === this.styleActiveColor) {
             const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
-            Global.money -= Modules.priceUpgrade(module.moduleType, module.level);
+            GameManager.getInstance().money -= Modules.priceUpgrade(module.moduleType, module.level);
             module.level++;
             this.refreshMenu();
         }
@@ -129,11 +134,11 @@ export class SceneShop extends Phaser.Scene {
         if (this.menuSell.style.color === this.styleActiveColor) {
             const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined) {
-                Global.money += Modules.sellPrice(module.moduleType, module.level);
+                GameManager.getInstance().money += Modules.sellPrice(module.moduleType, module.level);
                 Player.RemoveModule(this.cursorModule.x, this.cursorModule.y);
             }
             else if (Player.IsStructure(this.cursorModule.x, this.cursorModule.y)) {
-                Global.money += Modules.SellPriceStructure;
+                GameManager.getInstance().money += Modules.SellPriceStructure;
                 Player.RemoveStructure(this.cursorModule.x, this.cursorModule.y);
             }
             this.refreshMenu();
@@ -149,17 +154,17 @@ export class SceneShop extends Phaser.Scene {
 
     refreshCursor() {
         this.cursorImage.setPosition(
-            Global.PlayerPosInShop.x + this.cursorModule.x * Modules.size.x,
-            Global.PlayerPosInShop.y + this.cursorModule.y * Modules.size.y);
+            GameManager.getInstance().playerPosInShop.x + this.cursorModule.x * GameManager.getInstance().moduleSize.x * GameManager.getInstance().playerScale,
+            GameManager.getInstance().playerPosInShop.y + this.cursorModule.y * GameManager.getInstance().moduleSize.y * GameManager.getInstance().playerScale);
     }
 
     onQuit() {
-        Global.setGameState(GameState.Fight);
+        GameManager.getInstance().setGameState(GameState.Fight);
         this.scene.stop();
     }
 
     refreshMenu() {
-        this.menuMoney.text = `Money : ${Global.money} $`;
+        this.menuMoney.text = `Money : ${GameManager.getInstance().money} $`;
 
         const isStructure = Player.IsStructure(this.cursorModule.x, this.cursorModule.y);
         const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
@@ -167,7 +172,7 @@ export class SceneShop extends Phaser.Scene {
         // menuStructure
         let style = this.styleGrayed;
         if (!isStructure) {
-            if (Global.money >= Modules.buyPriceStructure) {
+            if (GameManager.getInstance().money >= Modules.buyPriceStructure) {
                 for (let x = -1; x <= 1; x += 2) {
                     if (Player.IsStructure(this.cursorModule.x + x, this.cursorModule.y)) {
                         style = this.styleActive;
@@ -185,7 +190,7 @@ export class SceneShop extends Phaser.Scene {
         // menuDefense
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (Global.money >= Modules.buyPrice(ModuleType.Defense, 1)) {
+            if (GameManager.getInstance().money >= Modules.buyPrice(ModuleType.Defense, 1)) {
                 style = this.styleActive;
             }
         }
@@ -194,7 +199,7 @@ export class SceneShop extends Phaser.Scene {
         // menuMerchandise
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (Global.money >= Modules.buyPrice(ModuleType.Merchandise, 1)) {
+            if (GameManager.getInstance().money >= Modules.buyPrice(ModuleType.Merchandise, 1)) {
                 style = this.styleActive;
             }
         }
@@ -203,7 +208,7 @@ export class SceneShop extends Phaser.Scene {
         // menuCannon
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (Global.money >= Modules.buyPrice(ModuleType.Cannon, 1)) {
+            if (GameManager.getInstance().money >= Modules.buyPrice(ModuleType.Cannon, 1)) {
                 style = this.styleActive;
             }
         }
@@ -224,7 +229,7 @@ export class SceneShop extends Phaser.Scene {
         if (module != undefined) {
             text += ` to level ${module.level + 1} : ${Modules.priceUpgrade(module.moduleType, module.level)} $`
                 + ` (${this.actionDescription(module.moduleType, module.level + 1)}) :`;
-            if (Global.money >= Modules.priceUpgrade(module.moduleType, module.level)) {
+            if (GameManager.getInstance().money >= Modules.priceUpgrade(module.moduleType, module.level)) {
                 style = this.styleActive;
             }
         }

@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
-import { Global } from './Global';
+import { GameManager } from './GameManager';
 import { Bullets } from './Bullets';
-import { Sounds } from './Sounds';
+import { SoundManager } from './SoundManager';
 
 export enum ModuleType {
     Merchandise = 1,
@@ -66,11 +66,11 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
                 yoyo: true,
                 repeat: -1,
             });
-            Sounds.PlayerShield.play();
+            SoundManager.getInstance().PlayerShield.play();
         }
         else if (this.life <= 0) {
             this.onDestroy();
-            Sounds.PlayerExplosion.play();
+            SoundManager.getInstance().PlayerExplosion.play();
         }
     }
 
@@ -115,12 +115,11 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         const angle = this.angleCannon - Math.PI / 2;
         this.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
             Math.cos(angle) * velocity, Math.sin(angle) * velocity);
-        Sounds.PlayerFire.play({ volume: 0.5 });
+        SoundManager.getInstance().PlayerFire.play({ volume: 0.5 });
     }
 }
 
 export class Modules extends Phaser.Physics.Arcade.Group {
-    static readonly size = new Phaser.Math.Vector2(16, 16);
     bullets: Bullets;
 
     constructor(world: Phaser.Physics.Arcade.World, scene: Phaser.Scene, config, bullets: Bullets) {
@@ -180,7 +179,7 @@ export class Modules extends Phaser.Physics.Arcade.Group {
     }
 
     newModule(x: number, y: number, moduleFrame: number): Module {
-        return this.create(x * Modules.size.x, y * Modules.size.y, 'modules', moduleFrame)
+        return this.create(x * GameManager.getInstance().moduleSize.x, y * GameManager.getInstance().moduleSize.y, 'modules', moduleFrame)
     }
 
     update(time, delta) {
@@ -201,8 +200,8 @@ export class Modules extends Phaser.Physics.Arcade.Group {
         let moduleFound = undefined;
 
         this.children.iterate((module: Module) => {
-            const xx = module.x / Modules.size.x;
-            const yy = module.y / Modules.size.y;
+            const xx = module.x / GameManager.getInstance().moduleSize.x;
+            const yy = module.y / GameManager.getInstance().moduleSize.y;
             if (x == xx && y == yy) {
                 // console.log(`getStructure(${x},${y}) ${xx} ${yy} TRUE`);
                 moduleFound = module;

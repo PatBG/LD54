@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { GameState, Global } from './Global';
+import { GameState, GameManager } from './GameManager';
 import { Module, Modules, ModuleType } from './Modules';
 import { Bullets } from './Bullets';
 import { Bounds } from 'matter';
@@ -22,6 +22,8 @@ export class Player extends Phaser.GameObjects.Container {
     keyUp2: Phaser.Input.Keyboard.Key;
     keyDown: Phaser.Input.Keyboard.Key;
 
+    cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
+
     constructor(scene: Phaser.Scene, x: number, y: number, bullets: Bullets) {
         super(scene, x, y);
         this.bullets = bullets;
@@ -30,7 +32,7 @@ export class Player extends Phaser.GameObjects.Container {
         this.setSize(46, 30);
         scene.physics.world.enableBody(this);
         // this.body.setCollideWorldBounds(true);
-        Global.cursorKeys = this.scene.input.keyboard.createCursorKeys();
+        this.cursorKeys = this.scene.input.keyboard.createCursorKeys();
 
         this.keyLeft = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keyLeft2 = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -41,7 +43,9 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.modules = this.scene.add.existing(new Modules(this.scene.physics.world, this.scene, { name: 'modulesContainer' }, this.bullets));
 
-        Global.onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+        GameManager.getInstance().onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
+
+        this.scale = GameManager.getInstance().playerScale = 1;
     }
 
     onGameStateChange(state: GameState) {
@@ -53,13 +57,13 @@ export class Player extends Phaser.GameObjects.Container {
             // Go automatically to the shop position
             const tween = this.scene.tweens.add({
                 targets: this,
-                x: Global.PlayerPosInShop.x,
-                y: Global.PlayerPosInShop.y,
+                x: GameManager.getInstance().playerPosInShop.x,
+                y: GameManager.getInstance().playerPosInShop.y,
                 ease: 'Linear',
-                duration: Math.sqrt(Math.pow(this.x - Global.PlayerPosInShop.x, 2)
-                    + Math.pow(this.y - Global.PlayerPosInShop.y, 2)) / this.speed * 1000,
+                duration: Math.sqrt(Math.pow(this.x - GameManager.getInstance().playerPosInShop.x, 2)
+                    + Math.pow(this.y - GameManager.getInstance().playerPosInShop.y, 2)) / this.speed * 1000,
                 onComplete: () => {
-                    Global.setGameState(GameState.Shop);
+                    GameManager.getInstance().setGameState(GameState.Shop);
                 },
             });
         }
@@ -68,8 +72,8 @@ export class Player extends Phaser.GameObjects.Container {
         }
         else if (state === GameState.GameStart) {
             // Initialisation of the player ship
-            this.x = Global.PlayerPosInShop.x;
-            this.y = Global.PlayerPosInShop.y;
+            this.x = GameManager.getInstance().playerPosInShop.x;
+            this.y = GameManager.getInstance().playerPosInShop.y;
 
             this.removeAllStructures();
             this.add(this.newStructure(0, 0));
@@ -91,20 +95,20 @@ export class Player extends Phaser.GameObjects.Container {
     inputIsKey = true;
     inputPrecPointer = new Phaser.Math.Vector2(0, 0);
     update(time, delta) {
-        if (Global.getGameState() !== GameState.Fight) return;
+        if (GameManager.getInstance().getGameState() !== GameState.Fight) return;
 
         if (this.modules.countActive() === 0) {
-            Global.setGameState(GameState.GameOver);
+            GameManager.getInstance().setGameState(GameState.GameOver);
             return;
         }
 
         // Update modules
         this.modules.update(time, delta);
 
-        if (Global.cursorKeys.left.isDown || this.keyLeft.isDown || this.keyLeft2.isDown
-            || Global.cursorKeys.right.isDown
-            || Global.cursorKeys.up.isDown || this.keyUp.isDown || this.keyUp2.isDown
-            || Global.cursorKeys.down.isDown
+        if (this.cursorKeys.left.isDown || this.keyLeft.isDown || this.keyLeft2.isDown
+            || this.cursorKeys.right.isDown
+            || this.cursorKeys.up.isDown || this.keyUp.isDown || this.keyUp2.isDown
+            || this.cursorKeys.down.isDown
             || !this.scene.input.isOver) {
             this.inputIsKey = true;
         }
@@ -127,17 +131,17 @@ export class Player extends Phaser.GameObjects.Container {
             }
         }
         else {
-            if (this.keyLeft.isDown || this.keyLeft2.isDown || Global.cursorKeys.left.isDown) {
+            if (this.keyLeft.isDown || this.keyLeft2.isDown || this.cursorKeys.left.isDown) {
                 v.x = -this.speed;
             }
-            else if (this.keyRight.isDown || Global.cursorKeys.right.isDown) {
+            else if (this.keyRight.isDown || this.cursorKeys.right.isDown) {
                 v.x = this.speed;
             }
 
-            if (this.keyUp.isDown || this.keyUp2.isDown || Global.cursorKeys.up.isDown) {
+            if (this.keyUp.isDown || this.keyUp2.isDown || this.cursorKeys.up.isDown) {
                 v.y = -this.speed;
             }
-            else if (this.keyDown.isDown || Global.cursorKeys.down.isDown) {
+            else if (this.keyDown.isDown || this.cursorKeys.down.isDown) {
                 v.y = this.speed;
             }
 
@@ -149,10 +153,10 @@ export class Player extends Phaser.GameObjects.Container {
         }
 
         // Check screen bounds
-        if ((this.x < 0 && v.x < 0) || (this.x > Global.canvasSize.x && v.x > 0)) {
+        if ((this.x < 0 && v.x < 0) || (this.x > GameManager.getInstance().canvasSize.x && v.x > 0)) {
             v.x = 0;
         }
-        if ((this.y < 0 && v.y < 0) || (this.y > Global.canvasSize.y && v.y > 0)) {
+        if ((this.y < 0 && v.y < 0) || (this.y > GameManager.getInstance().canvasSize.y && v.y > 0)) {
             v.y = 0;
         }
         this.body.velocity.x = v.x;
@@ -167,7 +171,7 @@ export class Player extends Phaser.GameObjects.Container {
     }
 
     newStructure(x: number, y: number) {
-        return this.scene.add.sprite(x * Modules.size.x, y * Modules.size.y, 'modules', 0);
+        return this.scene.add.sprite(x * GameManager.getInstance().moduleSize.x, y * GameManager.getInstance().moduleSize.y, 'modules', 0);
     }
 
     static IsStructure(x: number, y: number): boolean {
@@ -183,8 +187,8 @@ export class Player extends Phaser.GameObjects.Container {
 
     getStructure(x: number, y: number): Phaser.GameObjects.Sprite | undefined {
         let structure = undefined;
-        const xx = x * Modules.size.x;
-        const yy = y * Modules.size.y;
+        const xx = x * GameManager.getInstance().moduleSize.x;
+        const yy = y * GameManager.getInstance().moduleSize.y;
         this.each((sprite: Phaser.GameObjects.Sprite) => {
             if (sprite.x == xx && sprite.y == yy && sprite.frame.name == '0') {
                 structure = sprite;

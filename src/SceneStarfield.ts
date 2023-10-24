@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { Global, GameState } from './Global';
+import { GameManager, GameState } from './GameManager';
 
 export class SceneStarfield extends Phaser.Scene {
 
@@ -33,12 +33,12 @@ export class SceneStarfield extends Phaser.Scene {
             this.stars.create(Phaser.Math.Between(0, 800), Phaser.Math.Between(0, 800));
         }
 
-        this.max_x = Global.canvasSize.x;
-        this.max_y = Global.canvasSize.y;
+        this.max_x = GameManager.getInstance().canvasSize.x;
+        this.max_y = GameManager.getInstance().canvasSize.y;
     }
 
     update(time, delta) {
-        if (Global.getGameState() === GameState.Fight) {
+        if (GameManager.getInstance().getGameState() === GameState.Fight) {
             for (let i = 0; i < this.nb_stars; i++) {
                 const perspective = this.distance_min / (this.distance_min - this.zz[i]);
                 const bob = this.stars.children.list[i];

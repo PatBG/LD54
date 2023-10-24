@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { GameState, Global } from './Global';
+import { GameState, GameManager } from './GameManager';
 import { Vector } from 'matter';
 
 export class SceneGameOver extends Phaser.Scene {
@@ -11,7 +11,7 @@ export class SceneGameOver extends Phaser.Scene {
     }
 
     create() {
-        const startPos = new Phaser.Math.Vector2(Global.canvasCenter.x, Global.canvasCenter.y - 48);
+        const startPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y - 48);
         let text = this.add.text(startPos.x, startPos.y, 'GAME OVER',
             { font: '48px monospace', color: 'white' }).setOrigin(0.5);
 
@@ -30,7 +30,7 @@ export class SceneGameOver extends Phaser.Scene {
                 text.scaleY = 1 + factor.y;
             },
             onComplete: () => {
-                this.add.text(Global.canvasCenter.x, Global.canvasCenter.y, '[any key] to continue',
+                this.add.text(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y, '[any key] to continue',
                     { font: '16px monospace', color: 'white' }).setOrigin(0.5);
                 this.input.keyboard.on('keydown', () => { this.onStart(); });
                 this.input.on('pointerdown', () => { this.onStart(); });
@@ -42,7 +42,7 @@ export class SceneGameOver extends Phaser.Scene {
     }
 
     onStart() {
-        Global.setGameState(GameState.GameStart);
+        GameManager.getInstance().setGameState(GameState.GameStart);
         this.scene.stop();
     }
 }
