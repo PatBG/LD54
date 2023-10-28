@@ -136,11 +136,7 @@ export class Modules extends Phaser.Physics.Arcade.Group {
     }
 
     static sumNumbers(n: number): number {
-        let sum = 0;
-        for (let i = 1; i <= n; i++) {
-            sum += i;
-        }
-        return sum;
+        return n * (n+1) / 2;
     }
 
     static readonly buyPriceStructure = 50;
