@@ -174,11 +174,13 @@ export class SceneMain extends Phaser.Scene {
                 if (GameManager.getInstance().getGameState() == GameState.Fight) {
                     if (this.enemies.waveTotalEnemies !== undefined) {
                         text += `  ${(100 * (this.enemies.waveEnemiesSpawned - this.enemies.countActive()) / this.enemies.waveTotalEnemies).toFixed(0)} %`;
+                        text += `  Bonus: ${GameManager.getInstance().moneyBonus} $`;
                         if (GameManager.getInstance().adminMode) {
                             text += `  (${this.enemies.waveEnemiesSpawned}/${this.enemies.waveTotalEnemies})`
+                            text += `  ${this.bullets.poolInfo()}`;
+                            text += `  ${this.enemyBullets.poolInfo()}`;
                         }
                     }
-                    text += `  Bonus: ${GameManager.getInstance().moneyBonus} $`;
                 }
             }
             this.infoText.setText(text);
