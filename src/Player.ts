@@ -36,9 +36,6 @@ export class Player extends Phaser.GameObjects.Container {
         this.bullets = bullets;
         Player.instance = this;
         scene.add.existing(this);
-        this.setSize(46, 30);
-        scene.physics.world.enableBody(this);
-        // this.body.setCollideWorldBounds(true);
         this.cursorKeys = this.scene.input.keyboard.createCursorKeys();
 
         this.keyLeft = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -57,9 +54,6 @@ export class Player extends Phaser.GameObjects.Container {
 
     onGameStateChange(state: GameState) {
         if (state === GameState.EndWave) {
-            // Stop the ship
-            this.body.velocity.x = 0;
-            this.body.velocity.y = 0;
             this.modules.onEndWave();
             // Go automatically to the shop position
             const tween = this.scene.tweens.add({
@@ -92,10 +86,6 @@ export class Player extends Phaser.GameObjects.Container {
             this.addNewModule(-1, 1, ModuleType.Defense);
             this.addNewModule(0, 1, ModuleType.Merchandise);
             this.addNewModule(1, 1, ModuleType.Defense);
-        }
-        else if (state === GameState.GameOver) {
-            this.body.velocity.x = 0;
-            this.body.velocity.y = 0;
         }
     }
 
@@ -159,15 +149,14 @@ export class Player extends Phaser.GameObjects.Container {
             }
         }
 
-        // Check screen bounds
-        if ((this.x < 0 && v.x < 0) || (this.x > GameManager.getInstance().canvasSize.x && v.x > 0)) {
-            v.x = 0;
-        }
-        if ((this.y < 0 && v.y < 0) || (this.y > GameManager.getInstance().canvasSize.y && v.y > 0)) {
-            v.y = 0;
-        }
-        this.body.velocity.x = v.x;
-        this.body.velocity.y = v.y;
+        // Convert speed to delta position
+        v.x *= delta / 1000;
+        v.y *= delta / 1000;
+
+        // Clamp screen bounds
+        const [minV,maxV] = this.modules.getModulesBounds();
+        this.x = Phaser.Math.Clamp(this.x + v.x, -minV.x, GameManager.getInstance().canvasSize.x - maxV.x);
+        this.y = Phaser.Math.Clamp(this.y + v.y, -minV.y, GameManager.getInstance().canvasSize.y - maxV.y);
     }
 
     addNewStructure(x: number, y: number) {
