@@ -90,7 +90,7 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
         const v = new Phaser.Math.Vector2();
         if (this.texture.key === 'enemy3') {
             // Enemy fire at the player
-            const rotation = Phaser.Math.Angle.BetweenPoints(this, Player.getPosition());
+            const rotation = Phaser.Math.Angle.BetweenPoints(this, Player.getInstance().getPosition());
             v.x = Math.cos(rotation) * this.bulletVelocity;
             v.y = Math.sin(rotation) * this.bulletVelocity;
         }

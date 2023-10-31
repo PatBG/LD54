@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { GameManager } from './GameManager';
 import { Bullets } from './Bullets';
 import { SoundManager } from './SoundManager';
+import { PlayerManager } from './PlayerManager';
 
 export enum ModuleType {
     Merchandise = 1,
@@ -104,14 +105,14 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
         if (this.moduleType === ModuleType.Cannon) {
             const keyFire = this.keyFire1.isDown || this.keyFire2.isDown || this.scene.input.activePointer.isDown;
             if (keyFire && time >= this.timeNextFire) {
-                this.timeNextFire = time + 1000 / Modules.cannonFireRate(this.level);
+                this.timeNextFire = time + 1000 / PlayerManager.getInstance().cannonFireRate(this.level);
                 this.onFire();
             }
         }
     }
 
     onFire() {
-        const velocity = Modules.cannonBulletVelocity(this.level);
+        const velocity = PlayerManager.getInstance().cannonBulletVelocity(this.level);
         const angle = this.angleCannon - Math.PI / 2;
         this.bullets.fire(this.x + this.parentContainer.x, this.y + this.parentContainer.y,
             Math.cos(angle) * velocity, Math.sin(angle) * velocity);
@@ -133,45 +134,6 @@ export class Modules extends Phaser.Physics.Arcade.Group {
 
     onCreate(module: Module) {
         module.onCreate(this.bullets);
-    }
-
-    static sumNumbers(n: number): number {
-        return n * (n+1) / 2;
-    }
-
-    static readonly buyPriceStructure = 50;
-    static readonly SellPriceStructure = 25;
-    static buyPrice(moduleType: ModuleType, level: number): number {
-        switch (moduleType) {
-            case ModuleType.Cannon: return 100 + 100 * (level - 1) + 100 * Math.floor(level / 5);
-            case ModuleType.Defense: return 50 + 100 * (level - 1);
-            case ModuleType.Merchandise: return 100 + 50 * Modules.sumNumbers(level - 1);
-            default: return 0;
-        }
-    }
-
-    static sellPrice(moduleType: ModuleType, level: number): number {
-        let price = Modules.buyPrice(moduleType, level);
-        if (moduleType != ModuleType.Merchandise) {
-            price *= 0.5;
-        }
-        return price;
-    }
-
-    static priceUpgrade(moduleType: ModuleType, level: number): number {
-        let price = Modules.buyPrice(moduleType, level + 1) - Modules.buyPrice(moduleType, level);
-        if (moduleType == ModuleType.Merchandise) {
-            price *= 1.5;
-        }
-        return price;
-    }
-
-    static cannonFireRate(level: number): number {
-        return 1 + level;
-    }
-
-    static cannonBulletVelocity(level: number): number {
-        return 500 + 250 * Math.floor(level / 5);
     }
 
     newModule(x: number, y: number, moduleFrame: number): Module {

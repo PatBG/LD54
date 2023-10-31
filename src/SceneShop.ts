@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { GameState, GameManager } from './GameManager';
 import { Player } from './Player';
 import { Module, ModuleType, Modules } from './Modules';
+import { PlayerManager } from './PlayerManager';
 
 export class SceneShop extends Phaser.Scene {
 
@@ -44,12 +45,12 @@ export class SceneShop extends Phaser.Scene {
         this.menuMoney = this.addMenuText(`Money : ${GameManager.getInstance().money} $`);
         this.addMenuText('');
         this.menuMoney.setStyle(this.styleActive);
-        this.menuStructure = this.addMenuText(`[T] buy structure : ${Modules.buyPriceStructure} $`);
-        this.menuDefense = this.addMenuText(`[D] buy Defense shield : ${Modules.buyPrice(ModuleType.Defense, 1)} $` +
+        this.menuStructure = this.addMenuText(`[T] buy structure : ${PlayerManager.getInstance().buyPriceStructure} $`);
+        this.menuDefense = this.addMenuText(`[D] buy Defense shield : ${PlayerManager.getInstance().buyPrice(ModuleType.Defense, 1)} $` +
             ` (${this.actionDescription(ModuleType.Defense, 1)})`);
-        this.menuMerchandise = this.addMenuText(`[M] buy Merchandise : ${Modules.buyPrice(ModuleType.Merchandise, 1)} $` +
+        this.menuMerchandise = this.addMenuText(`[M] buy Merchandise : ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, 1)} $` +
             ` (${this.actionDescription(ModuleType.Merchandise, 1)})`);
-        this.menuCannon = this.addMenuText(`[C] buy Cannon : ${Modules.buyPrice(ModuleType.Cannon, 1)} $` +
+        this.menuCannon = this.addMenuText(`[C] buy Cannon : ${PlayerManager.getInstance().buyPrice(ModuleType.Cannon, 1)} $` +
             ` (${this.actionDescription(ModuleType.Cannon, 1)})`);
         this.menuRotate = this.addMenuText(`[R] Rotate cannon (only if level 1, [SHIFT] + [R] turn the other way)`);
         this.menuUpgrade = this.addMenuText(`[U] Upgrade`);
@@ -98,23 +99,23 @@ export class SceneShop extends Phaser.Scene {
 
     onBuyStructure() {
         if (this.menuStructure.style.color === this.styleActiveColor) {
-            Player.NewStructure(this.cursorModule.x, this.cursorModule.y);
-            GameManager.getInstance().money -= Modules.buyPriceStructure;
+            Player.getInstance().addNewStructure(this.cursorModule.x, this.cursorModule.y);
+            GameManager.getInstance().money -= PlayerManager.getInstance().buyPriceStructure();
             this.refreshMenu();
         }
     }
 
     onBuyModule(text: Phaser.GameObjects.Text, moduleType: ModuleType) {
         if (text.style.color === this.styleActiveColor) {
-            Player.NewModule(this.cursorModule.x, this.cursorModule.y, moduleType);
-            GameManager.getInstance().money -= Modules.buyPrice(moduleType, 1);
+            Player.getInstance().addNewModule(this.cursorModule.x, this.cursorModule.y, moduleType);
+            GameManager.getInstance().money -= PlayerManager.getInstance().buyPrice(moduleType, 1);
             this.refreshMenu();
         }
     }
 
     onRotateCannon() {
         if (this.menuRotate.style.color === this.styleActiveColor) {
-            const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
+            const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined && module.moduleType === ModuleType.Cannon) {
                 module.addAngleCannon(this.modifierKey.isDown ? -Math.PI / 8 : Math.PI / 8);
             }
@@ -123,8 +124,8 @@ export class SceneShop extends Phaser.Scene {
 
     onUpgrade() {
         if (this.menuUpgrade.style.color === this.styleActiveColor) {
-            const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
-            GameManager.getInstance().money -= Modules.priceUpgrade(module.moduleType, module.level);
+            const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
+            GameManager.getInstance().money -= PlayerManager.getInstance().priceUpgrade(module.moduleType, module.level);
             module.level++;
             this.refreshMenu();
         }
@@ -132,14 +133,14 @@ export class SceneShop extends Phaser.Scene {
 
     onSell() {
         if (this.menuSell.style.color === this.styleActiveColor) {
-            const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
+            const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined) {
-                GameManager.getInstance().money += Modules.sellPrice(module.moduleType, module.level);
-                Player.RemoveModule(this.cursorModule.x, this.cursorModule.y);
+                GameManager.getInstance().money += PlayerManager.getInstance().sellPrice(module.moduleType, module.level);
+                Player.getInstance().removeModule(this.cursorModule.x, this.cursorModule.y);
             }
-            else if (Player.IsStructure(this.cursorModule.x, this.cursorModule.y)) {
-                GameManager.getInstance().money += Modules.SellPriceStructure;
-                Player.RemoveStructure(this.cursorModule.x, this.cursorModule.y);
+            else if (Player.getInstance().isStructure(this.cursorModule.x, this.cursorModule.y)) {
+                GameManager.getInstance().money += PlayerManager.getInstance().sellPriceStructure();
+                Player.getInstance().removeStructure(this.cursorModule.x, this.cursorModule.y);
             }
             this.refreshMenu();
         }
@@ -166,20 +167,20 @@ export class SceneShop extends Phaser.Scene {
     refreshMenu() {
         this.menuMoney.text = `Money : ${GameManager.getInstance().money} $`;
 
-        const isStructure = Player.IsStructure(this.cursorModule.x, this.cursorModule.y);
-        const module = Player.GetModule(this.cursorModule.x, this.cursorModule.y);
+        const isStructure = Player.getInstance().isStructure(this.cursorModule.x, this.cursorModule.y);
+        const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
 
         // menuStructure
         let style = this.styleGrayed;
         if (!isStructure) {
-            if (GameManager.getInstance().money >= Modules.buyPriceStructure) {
+            if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPriceStructure()) {
                 for (let x = -1; x <= 1; x += 2) {
-                    if (Player.IsStructure(this.cursorModule.x + x, this.cursorModule.y)) {
+                    if (Player.getInstance().isStructure(this.cursorModule.x + x, this.cursorModule.y)) {
                         style = this.styleActive;
                     }
                 }
                 for (let y = -1; y <= 2; y += 2) {
-                    if (Player.IsStructure(this.cursorModule.x, this.cursorModule.y + y)) {
+                    if (Player.getInstance().isStructure(this.cursorModule.x, this.cursorModule.y + y)) {
                         style = this.styleActive;
                     }
                 }
@@ -190,7 +191,7 @@ export class SceneShop extends Phaser.Scene {
         // menuDefense
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (GameManager.getInstance().money >= Modules.buyPrice(ModuleType.Defense, 1)) {
+            if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPrice(ModuleType.Defense, 1)) {
                 style = this.styleActive;
             }
         }
@@ -199,7 +200,7 @@ export class SceneShop extends Phaser.Scene {
         // menuMerchandise
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (GameManager.getInstance().money >= Modules.buyPrice(ModuleType.Merchandise, 1)) {
+            if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, 1)) {
                 style = this.styleActive;
             }
         }
@@ -208,7 +209,7 @@ export class SceneShop extends Phaser.Scene {
         // menuCannon
         style = this.styleGrayed;
         if (isStructure && module === undefined) {
-            if (GameManager.getInstance().money >= Modules.buyPrice(ModuleType.Cannon, 1)) {
+            if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPrice(ModuleType.Cannon, 1)) {
                 style = this.styleActive;
             }
         }
@@ -227,9 +228,9 @@ export class SceneShop extends Phaser.Scene {
         style = this.styleGrayed;
         let text = '[U] Upgrade';
         if (module != undefined) {
-            text += ` to level ${module.level + 1} : ${Modules.priceUpgrade(module.moduleType, module.level)} $`
+            text += ` to level ${module.level + 1} : ${PlayerManager.getInstance().priceUpgrade(module.moduleType, module.level)} $`
                 + ` (${this.actionDescription(module.moduleType, module.level + 1)}) :`;
-            if (GameManager.getInstance().money >= Modules.priceUpgrade(module.moduleType, module.level)) {
+            if (GameManager.getInstance().money >= PlayerManager.getInstance().priceUpgrade(module.moduleType, module.level)) {
                 style = this.styleActive;
             }
         }
@@ -240,19 +241,19 @@ export class SceneShop extends Phaser.Scene {
         style = this.styleGrayed;
         text = '[S] Sell';
         if (module != undefined) {
-            if (Player.NbModule() <= 1) {
+            if (Player.getInstance().nbModule() <= 1) {
                 text += ` (you can't sell the last module)`;
             }
             else {
                 style = this.styleActive;
                 text += ` ${ModuleType[module.moduleType]} level ${module.level} :`
-                    + ` ${Modules.sellPrice(module.moduleType, module.level)} $`
+                    + ` ${PlayerManager.getInstance().sellPrice(module.moduleType, module.level)} $`
                     + ` (${this.actionDescription(module.moduleType, module.level)})`;
             }
         }
-        else if (Player.IsStructure(this.cursorModule.x, this.cursorModule.y)) {
+        else if (Player.getInstance().isStructure(this.cursorModule.x, this.cursorModule.y)) {
             style = this.styleActive;
-            text += ` structure : ${Modules.SellPriceStructure} $`;
+            text += ` structure : ${PlayerManager.getInstance().sellPriceStructure()} $`;
         }
         this.menuSell.setStyle(style);
         this.menuSell.text = text;
@@ -265,11 +266,11 @@ export class SceneShop extends Phaser.Scene {
                 text = `absorb ${level} hits`;
                 break;
             case ModuleType.Merchandise:
-                text = `can be sold ${Modules.buyPrice(ModuleType.Merchandise, level + 1)} $ next stage`;
+                text = `can be sold ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, level + 1)} $ next stage`;
                 break;
             case ModuleType.Cannon:
-                text = `${Modules.cannonFireRate(level)} bullets/sec`
-                    + ` at ${Modules.cannonBulletVelocity(level)} m/sec`;
+                text = `${PlayerManager.getInstance().cannonFireRate(level)} bullets/sec`
+                    + ` at ${PlayerManager.getInstance().cannonBulletVelocity(level)} m/sec`;
                 break;
         }
         return text;
