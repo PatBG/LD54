@@ -4,7 +4,8 @@ import { Player } from './Player';
 import { Bullets, Bullet } from './Bullets';
 import { Enemies, Enemy } from './Enemies';
 import { SoundManager } from './SoundManager';
-import { Modules, Module, ModuleType } from './Modules';
+import { Module } from './Module';
+import { PlayerManager } from './PlayerManager';
 
 export class SceneMain extends Phaser.Scene {
     player: Player;
@@ -138,7 +139,12 @@ export class SceneMain extends Phaser.Scene {
             this.scene.launch('SceneGameStart');
         }
         else if (state === GameState.Shop) {
-            GameManager.getInstance().money += GameManager.getInstance().moneyBonus;
+            const waveBonus = PlayerManager.getInstance().waveBonus(GameManager.getInstance().wave);
+            const text = `Wave: ${GameManager.getInstance().wave} completed ` +
+                `  Aliens bounty: ${GameManager.getInstance().moneyBonus} $` +
+                `  Wave bonus: ${waveBonus} $`;
+            this.infoText.setText(text);
+            GameManager.getInstance().money += GameManager.getInstance().moneyBonus + waveBonus;
             GameManager.getInstance().moneyBonus = 0;
             this.scene.launch('SceneShop');
         }
@@ -168,13 +174,13 @@ export class SceneMain extends Phaser.Scene {
         if (time > this.textInfoNextTime) {
             this.textInfoNextTime = time + 500;
 
-            let text = '';
-            if (GameManager.getInstance().wave > 0) {
-                text = `Wave: ${GameManager.getInstance().wave}`
-                if (GameManager.getInstance().getGameState() == GameState.Fight) {
+            if (GameManager.getInstance().getGameState() == GameState.Fight) {
+                let text = '';
+                if (GameManager.getInstance().wave > 0) {
+                    text += `Wave: ${GameManager.getInstance().wave}`
                     if (this.enemies.waveTotalEnemies !== undefined) {
                         text += `  ${(100 * (this.enemies.waveEnemiesSpawned - this.enemies.countActive()) / this.enemies.waveTotalEnemies).toFixed(0)} %`;
-                        text += `  Bonus: ${GameManager.getInstance().moneyBonus} $`;
+                        text += `  Aliens bounty: ${GameManager.getInstance().moneyBonus} $`;
                         if (GameManager.getInstance().adminMode) {
                             text += `  (${this.enemies.waveEnemiesSpawned}/${this.enemies.waveTotalEnemies})`
                             text += `  ${this.bullets.poolInfo()}`;
@@ -182,8 +188,8 @@ export class SceneMain extends Phaser.Scene {
                         }
                     }
                 }
+                this.infoText.setText(text);
             }
-            this.infoText.setText(text);
         }
     }
 }
