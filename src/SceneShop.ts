@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { GameState, GameManager } from './GameManager';
 import { Player } from './Player';
-import { Module, ModuleType, Modules } from './Modules';
+import { ModuleType } from './Modules';
 import { PlayerManager } from './PlayerManager';
 
 export class SceneShop extends Phaser.Scene {
@@ -14,7 +14,7 @@ export class SceneShop extends Phaser.Scene {
     menuRotate: Phaser.GameObjects.Text;
     menuUpgrade: Phaser.GameObjects.Text;
     menuSell: Phaser.GameObjects.Text;
-    menuGo: Phaser.GameObjects.Text;
+    menuQuit: Phaser.GameObjects.Text;
     menuTextPos: Phaser.Math.Vector2;
 
     readonly styleActiveColor = 'aqua';
@@ -56,8 +56,9 @@ export class SceneShop extends Phaser.Scene {
         this.menuUpgrade = this.addMenuText(`[U] Upgrade`);
         this.menuSell = this.addMenuText(`[S] Sell`);
         this.addMenuText('');
-        this.menuGo = this.addMenuText(`[ESC] quit the shop and start the next wave`);
-        this.menuGo.setStyle(this.styleActive);
+        this.addMenuText(`[Arrow Keys] to move the cursor around the modules`);
+        this.menuQuit = this.addMenuText(`[ESC] quit the shop and start the next wave`);
+        this.menuQuit.setStyle(this.styleActive);
 
         this.input.keyboard.addKey('T').on('down', () => { this.onBuyStructure(); });
         this.input.keyboard.addKey('D').on('down', () => { this.onBuyModule(this.menuDefense, ModuleType.Defense); });
