@@ -27,7 +27,7 @@ export class GameManager {
     public initCanvasSize(scene: Phaser.Scene) {
         this.canvasSize = new Phaser.Math.Vector2(scene.sys.game.canvas.width, scene.sys.game.canvas.height);
         this.canvasCenter = new Phaser.Math.Vector2(this.canvasSize.x / 2, this.canvasSize.y / 2);
-        this.playerPosInShop = new Phaser.Math.Vector2(this.canvasSize.x / 2, this.canvasSize.y - 100);
+        this.playerPosInShop = new Phaser.Math.Vector2(this.canvasSize.x / 2, this.canvasSize.y - 150);
     }
 
     public wave = 0;
@@ -38,7 +38,7 @@ export class GameManager {
     public adminMode = false;
 
     public moduleSize = new Phaser.Math.Vector2(16, 16);
-    public playerScale = 1;
+    public playerScale = 2;
 
     // Game state
     private gameState: GameState = GameState.GameStart;

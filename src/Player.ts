@@ -1,8 +1,8 @@
 import * as Phaser from 'phaser';
 import { GameState, GameManager } from './GameManager';
-import { Module, Modules, ModuleType } from './Modules';
+import { Modules, ModuleType } from './Modules';
+import { Module } from './Module';
 import { Bullets } from './Bullets';
-import { Bounds } from 'matter';
 
 
 export class Player extends Phaser.GameObjects.Container {
@@ -49,7 +49,7 @@ export class Player extends Phaser.GameObjects.Container {
 
         GameManager.getInstance().onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
 
-        this.scale = GameManager.getInstance().playerScale = 1;
+        this.scale = GameManager.getInstance().playerScale;
     }
 
     onGameStateChange(state: GameState) {
