@@ -55,4 +55,8 @@ export class PlayerManager {
     cannonBulletVelocity(level: number): number {
         return 500 + 250 * Math.floor(level / 5);
     }
+
+    waveBonus(level: number): number {
+        return 100 + (level - 1) * 10;
+    }
 }
