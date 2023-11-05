@@ -9,16 +9,21 @@ import { ScenePause } from './ScenePause';
 const config: Phaser.Types.Core.GameConfig =
 {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        parent: 'phaser-example',
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 800,
+        height: 600,
+    },
     backgroundColor: 0x000000,
-    scene: [ 
+    scene: [
         SceneStarfield,
-        SceneMain, 
+        SceneMain,
         SceneGameStart,
         SceneShop,
         SceneGameOver,
-        ScenePause, 
+        ScenePause,
     ],
     physics: {
         default: "arcade",

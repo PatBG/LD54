@@ -16,6 +16,7 @@ export class SceneMain extends Phaser.Scene {
     explosionEnemy: Phaser.GameObjects.Particles.ParticleEmitter;
     explosionModuleHit: Phaser.GameObjects.Particles.ParticleEmitter;
     infoText: Phaser.GameObjects.Text;
+    buttonFullScreen: Phaser.GameObjects.Sprite;
 
     constructor() {
         super({ key: 'SceneMain', active: true });
@@ -23,13 +24,15 @@ export class SceneMain extends Phaser.Scene {
 
     preload() {
         this.load.image('bullet', 'assets/bullet.png');
-        this.load.spritesheet('modules', 'assets/modules.png', { frameWidth: 16, frameHeight: 16 });
-        GameManager.getInstance().moduleSize = new Phaser.Math.Vector2(16, 16);
+        const moduleSize = GameManager.getInstance().moduleSize;
+        this.load.spritesheet('modules', 'assets/modules.png', { frameWidth: moduleSize.x, frameHeight: moduleSize.y });
 
         this.load.image('enemy1', 'assets/enemy1.png');
         this.load.image('enemy2', 'assets/enemy2.png');
         this.load.image('enemy3', 'assets/enemy3.png');
         this.load.image('enemyBullet', 'assets/enemyBullet.png');
+
+        this.load.spritesheet('fullscreen', 'assets/fullscreen.png', { frameWidth: 64, frameHeight: 64 });
 
         GameManager.getInstance().initCanvasSize(this);
         SoundManager.getInstance().preload(this);
@@ -37,6 +40,10 @@ export class SceneMain extends Phaser.Scene {
 
     create() {
         SoundManager.getInstance().create(this);
+
+        this.buttonFullScreen = this.add.sprite(800 - 16, 16, 'fullscreen', 0).setOrigin(1, 0).setInteractive();
+        this.buttonFullScreen.on('pointerup', () => { this.onToggleFullScreen(); }, this);
+        this.input.keyboard.addKey('F').on('down', () => { this.onToggleFullScreen(); }, this);
 
         this.infoText = this.add.text(5, 5, '', { font: '16px monospace', color: 'white' });
 
@@ -117,9 +124,19 @@ export class SceneMain extends Phaser.Scene {
         this.input.keyboard.addKey('P').on('down', () => { this.onPause(); });
 
         // HACK: End the current wave with a key for testing
-        this.input.keyboard.addKey('ESC').on('down', () => { this.hackEndWave(); });
+        this.input.keyboard.addKey('F9').on('down', () => { this.hackEndWave(); });
     }
 
+    onToggleFullScreen() {
+        if (this.scale.isFullscreen) {
+            this.buttonFullScreen.setFrame(0);
+            this.scale.stopFullscreen();
+        }
+        else {
+            this.buttonFullScreen.setFrame(1);
+            this.scale.startFullscreen();
+        }
+    }
 
     onGameStateChange(state: GameState) {
         if (state === GameState.Fight) {
