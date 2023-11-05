@@ -7,10 +7,10 @@ import { PlayerManager } from './PlayerManager';
 export class SceneShop extends Phaser.Scene {
 
     menuMoney: Phaser.GameObjects.Text;
-    menuStructure: Phaser.GameObjects.Text;
-    menuDefense: Phaser.GameObjects.Text;
-    menuMerchandise: Phaser.GameObjects.Text;
-    menuCannon: Phaser.GameObjects.Text;
+    menuBuyStructure: Phaser.GameObjects.Text;
+    menuBuyDefense: Phaser.GameObjects.Text;
+    menuBuyMerchandise: Phaser.GameObjects.Text;
+    menuBuyCannon: Phaser.GameObjects.Text;
     menuRotate: Phaser.GameObjects.Text;
     menuUpgrade: Phaser.GameObjects.Text;
     menuSell: Phaser.GameObjects.Text;
@@ -22,7 +22,7 @@ export class SceneShop extends Phaser.Scene {
     readonly styleGrayedColor = 'gray';
     readonly styleGrayed = { font: '16px monospace', color: this.styleGrayedColor };
 
-    cursorModule:Phaser.Math.Vector2; 
+    cursorModule: Phaser.Math.Vector2;
     cursorImage: Phaser.GameObjects.Image;
 
     modifierKey: Phaser.Input.Keyboard.Key;
@@ -45,35 +45,44 @@ export class SceneShop extends Phaser.Scene {
         this.menuMoney = this.addMenuText(`Money : ${GameManager.getInstance().money} $`);
         this.addMenuText('');
         this.menuMoney.setStyle(this.styleActive);
-        this.menuStructure = this.addMenuText(`[T] buy structure : ${PlayerManager.getInstance().buyPriceStructure} $`);
-        this.menuDefense = this.addMenuText(`[D] buy Defense shield : ${PlayerManager.getInstance().buyPrice(ModuleType.Defense, 1)} $` +
+        this.menuBuyStructure = this.addMenuText(`[T] buy structure : ${PlayerManager.getInstance().buyPriceStructure()} $`);
+        this.menuBuyDefense = this.addMenuText(`[D] buy Defense shield : ${PlayerManager.getInstance().buyPrice(ModuleType.Defense, 1)} $` +
             ` (${this.actionDescription(ModuleType.Defense, 1)})`);
-        this.menuMerchandise = this.addMenuText(`[M] buy Merchandise : ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, 1)} $` +
+        this.menuBuyMerchandise = this.addMenuText(`[M] buy Merchandise : ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, 1)} $` +
             ` (${this.actionDescription(ModuleType.Merchandise, 1)})`);
-        this.menuCannon = this.addMenuText(`[C] buy Cannon : ${PlayerManager.getInstance().buyPrice(ModuleType.Cannon, 1)} $` +
+        this.menuBuyCannon = this.addMenuText(`[C] buy Cannon : ${PlayerManager.getInstance().buyPrice(ModuleType.Cannon, 1)} $` +
             ` (${this.actionDescription(ModuleType.Cannon, 1)})`);
         this.menuRotate = this.addMenuText(`[R] Rotate cannon (only if level 1, [SHIFT] + [R] turn the other way)`);
         this.menuUpgrade = this.addMenuText(`[U] Upgrade`);
         this.menuSell = this.addMenuText(`[S] Sell`);
         this.addMenuText('');
         this.addMenuText(`[Arrow Keys] to move the cursor around the modules`);
-        this.menuQuit = this.addMenuText(`[ESC] quit the shop and start the next wave`);
+        this.menuQuit = this.addMenuText(`[Q] quit the shop and start the next wave`);
         this.menuQuit.setStyle(this.styleActive);
 
+        this.menuBuyStructure.setInteractive().on('pointerdown', () => { this.onBuyStructure(); });
         this.input.keyboard.addKey('T').on('down', () => { this.onBuyStructure(); });
-        this.input.keyboard.addKey('D').on('down', () => { this.onBuyModule(this.menuDefense, ModuleType.Defense); });
-        this.input.keyboard.addKey('M').on('down', () => { this.onBuyModule(this.menuMerchandise, ModuleType.Merchandise); });
-        this.input.keyboard.addKey('C').on('down', () => { this.onBuyModule(this.menuCannon, ModuleType.Cannon); });
-        this.input.keyboard.addKey('R').on('down', () => { this.onRotateCannon(); });
+        this.menuBuyDefense.setInteractive().on('pointerdown', () => { this.onBuyModule(this.menuBuyDefense, ModuleType.Defense); });
+        this.input.keyboard.addKey('D').on('down', () => { this.onBuyModule(this.menuBuyDefense, ModuleType.Defense); });
+        this.menuBuyMerchandise.setInteractive().on('pointerdown', () => { this.onBuyModule(this.menuBuyMerchandise, ModuleType.Merchandise); });
+        this.input.keyboard.addKey('M').on('down', () => { this.onBuyModule(this.menuBuyMerchandise, ModuleType.Merchandise); });
+        this.menuBuyCannon.setInteractive().on('pointerdown', () => { this.onBuyModule(this.menuBuyCannon, ModuleType.Cannon); });
+        this.input.keyboard.addKey('C').on('down', () => { this.onBuyModule(this.menuBuyCannon, ModuleType.Cannon); });
+        this.menuRotate.setInteractive().on('pointerdown', () => { this.onRotateCannon(!this.modifierKey.isDown); });
+        this.input.keyboard.addKey('R').on('down', () => { this.onRotateCannon(!this.modifierKey.isDown); });
+        this.menuUpgrade.setInteractive().on('pointerdown', () => { this.onUpgrade(); });
         this.input.keyboard.addKey('U').on('down', () => { this.onUpgrade(); });
+        this.menuSell.setInteractive().on('pointerdown', () => { this.onSell(); });
         this.input.keyboard.addKey('S').on('down', () => { this.onSell(); });
 
-        this.input.keyboard.addKey('ESC').on('down', () => { this.onQuit(); });
+        this.menuQuit.setInteractive().on('pointerdown', () => { this.onQuit(); });
+        this.input.keyboard.addKey('Q').on('down', () => { this.onQuit(); });
 
         this.input.keyboard.addKey('LEFT').on('down', () => { this.onMoveCursor(-1, 0); });
         this.input.keyboard.addKey('RIGHT').on('down', () => { this.onMoveCursor(1, 0); });
         this.input.keyboard.addKey('UP').on('down', () => { this.onMoveCursor(0, -1); });
         this.input.keyboard.addKey('DOWN').on('down', () => { this.onMoveCursor(0, 1); });
+        this.input.on('pointerdown', (pointer) => { this.onPointerDown(pointer); });
 
         this.modifierKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
@@ -93,13 +102,29 @@ export class SceneShop extends Phaser.Scene {
         this.refreshMenu();
     }
 
+    // Move modules cursor with mouse
+    onPointerDown(pointer: Phaser.Input.Pointer) {
+        if (pointer.y > this.menuQuit.y + 20) {
+            const size = GameManager.getInstance().moduleSize;
+            const scale = GameManager.getInstance().playerScale;
+            const pos0 = GameManager.getInstance().playerPosInShop;
+            pointer.x += size.x * scale / 2;
+            pointer.y += size.y * scale / 2;
+            const x = Math.floor((pointer.x - pos0.x) / (size.x * scale));
+            const y = Math.floor((pointer.y - pos0.y) / (size.y * scale));
+            this.cursorModule.set(x, y);
+            this.refreshCursor();
+            this.refreshMenu();
+        }
+    }
+
     addMenuText(text: string): Phaser.GameObjects.Text {
         this.menuTextPos.y += 20;
         return this.add.text(this.menuTextPos.x, this.menuTextPos.y, text);
     }
 
     onBuyStructure() {
-        if (this.menuStructure.style.color === this.styleActiveColor) {
+        if (this.menuBuyStructure.style.color === this.styleActiveColor) {
             Player.getInstance().addNewStructure(this.cursorModule.x, this.cursorModule.y);
             GameManager.getInstance().money -= PlayerManager.getInstance().buyPriceStructure();
             this.refreshMenu();
@@ -114,11 +139,11 @@ export class SceneShop extends Phaser.Scene {
         }
     }
 
-    onRotateCannon() {
+    onRotateCannon(isClockwise: boolean) {
         if (this.menuRotate.style.color === this.styleActiveColor) {
             const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined && module.moduleType === ModuleType.Cannon) {
-                module.addAngleCannon(this.modifierKey.isDown ? -Math.PI / 8 : Math.PI / 8);
+                module.addAngleCannon(isClockwise ? Math.PI / 8 : -Math.PI / 8);
             }
         }
     }
@@ -187,7 +212,7 @@ export class SceneShop extends Phaser.Scene {
                 }
             }
         }
-        this.menuStructure.setStyle(style);
+        this.menuBuyStructure.setStyle(style);
 
         // menuDefense
         style = this.styleGrayed;
@@ -196,7 +221,7 @@ export class SceneShop extends Phaser.Scene {
                 style = this.styleActive;
             }
         }
-        this.menuDefense.setStyle(style);
+        this.menuBuyDefense.setStyle(style);
 
         // menuMerchandise
         style = this.styleGrayed;
@@ -205,7 +230,7 @@ export class SceneShop extends Phaser.Scene {
                 style = this.styleActive;
             }
         }
-        this.menuMerchandise.setStyle(style);
+        this.menuBuyMerchandise.setStyle(style);
 
         // menuCannon
         style = this.styleGrayed;
@@ -214,7 +239,7 @@ export class SceneShop extends Phaser.Scene {
                 style = this.styleActive;
             }
         }
-        this.menuCannon.setStyle(style);
+        this.menuBuyCannon.setStyle(style);
 
         // menuRotate (only rotate cannon of level 1)
         style = this.styleGrayed;
