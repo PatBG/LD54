@@ -37,8 +37,8 @@ export class GameManager {
 
     public adminMode = false;
 
-    public moduleSize = new Phaser.Math.Vector2(16, 16);
-    public playerScale = 2;
+    public moduleSize = new Phaser.Math.Vector2(32, 32);
+    public playerScale = 1;
 
     // Game state
     private gameState: GameState = GameState.GameStart;
