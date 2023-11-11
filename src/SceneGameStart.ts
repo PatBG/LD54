@@ -52,7 +52,8 @@ export class SceneGameStart extends Phaser.Scene {
     }
 
     onStart() {
-        GameManager.getInstance().adminMode = this.adminKey.isDown;
+        // In localhost, admin mode is on by default, and off if the admin key is pressed.
+        GameManager.getInstance().adminMode = (window.location.href.indexOf("localhost") < 0) ? this.adminKey.isDown : !this.adminKey.isDown;
         GameManager.getInstance().setGameState(GameState.Fight);
         this.scene.stop();
     }
