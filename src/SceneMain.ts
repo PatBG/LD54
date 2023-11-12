@@ -41,11 +41,11 @@ export class SceneMain extends Phaser.Scene {
     create() {
         SoundManager.getInstance().create(this);
 
-        this.buttonFullScreen = this.add.sprite(800 - 16, 16, 'fullscreen', 0).setOrigin(1, 0).setInteractive();
+        this.buttonFullScreen = this.add.sprite(GameManager.getInstance().canvasSize.x - 16, 16, 'fullscreen', 0).setOrigin(1, 0).setInteractive();
         this.buttonFullScreen.on('pointerup', () => { this.onToggleFullScreen(); }, this);
         this.input.keyboard.addKey('F').on('down', () => { this.onToggleFullScreen(); }, this);
 
-        this.infoText = this.add.text(5, 5, '', { font: '16px monospace', color: 'white' });
+        this.infoText = this.add.text(5, 5, '', { font: '12px monospace', color: 'white' });
 
         this.enemyBullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'enemyBullets' }));
         this.enemyBullets.createMultiple({ key: 'enemyBullet', quantity: 100 });
@@ -202,6 +202,8 @@ export class SceneMain extends Phaser.Scene {
                             text += `  (${this.enemies.waveEnemiesSpawned}/${this.enemies.waveTotalEnemies})`
                             text += `  ${this.bullets.poolInfo()}`;
                             text += `  ${this.enemyBullets.poolInfo()}`;
+                            text += `\r\n`;
+                            text += `game.canvas=${this.sys.game.canvas.width}x${this.sys.game.canvas.height} `;
                         }
                     }
                 }
