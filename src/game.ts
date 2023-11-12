@@ -5,6 +5,7 @@ import { SceneShop } from './SceneShop';
 import { SceneGameOver } from './SceneGameOver';
 import { SceneGameStart } from './SceneGameStart';
 import { ScenePause } from './ScenePause';
+import { SceneGuide } from './SceneGuide';
 
 const config: Phaser.Types.Core.GameConfig =
 {
@@ -13,8 +14,8 @@ const config: Phaser.Types.Core.GameConfig =
         mode: Phaser.Scale.FIT,
         parent: 'phaser-example',
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 800,
-        height: 600,
+        width: 640,
+        height: 1080,
     },
     backgroundColor: 0x000000,
     scene: [
@@ -24,6 +25,7 @@ const config: Phaser.Types.Core.GameConfig =
         SceneShop,
         SceneGameOver,
         ScenePause,
+        SceneGuide, // Debug scene with resolutions guides
     ],
     physics: {
         default: "arcade",
