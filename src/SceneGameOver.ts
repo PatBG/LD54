@@ -11,6 +11,8 @@ export class SceneGameOver extends Phaser.Scene {
     }
 
     create() {
+        GameManager.getInstance().updateCamera();   // Hack because camera of inactives scenes is not updated
+
         const startPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y - 48);
         let text = this.add.text(startPos.x, startPos.y, 'GAME OVER',
             { font: '48px monospace', color: 'white' }).setOrigin(0.5);

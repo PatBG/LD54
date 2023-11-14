@@ -28,13 +28,12 @@ export class SceneStarfield extends Phaser.Scene {
 
         this.stars = this.add.blitter(0, 0, 'star');
 
+        this.max_x = GameManager.getInstance().sizeMaxGame.width;
+        this.max_y = GameManager.getInstance().sizeMaxGame.height;
         for (let i = 0; i < this.nb_stars; i++) {
             this.zz[i] = Phaser.Math.Between(this.distance_min, this.distance_max);
-            this.stars.create(Phaser.Math.Between(0, 800), Phaser.Math.Between(0, 800));
+            this.stars.create(Phaser.Math.Between(0, this.max_x), Phaser.Math.Between(0, this.max_y));
         }
-
-        this.max_x = GameManager.getInstance().canvasSize.x;
-        this.max_y = GameManager.getInstance().canvasSize.y;
     }
 
     update(time, delta) {

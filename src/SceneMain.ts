@@ -34,12 +34,13 @@ export class SceneMain extends Phaser.Scene {
 
         this.load.spritesheet('fullscreen', 'assets/fullscreen.png', { frameWidth: 64, frameHeight: 64 });
 
-        GameManager.getInstance().initCanvasSize(this);
         SoundManager.getInstance().preload(this);
     }
 
     create() {
         SoundManager.getInstance().create(this);
+
+        GameManager.getInstance().initScaleSizer(this);
 
         this.buttonFullScreen = this.add.sprite(GameManager.getInstance().canvasSize.x - 16, 16, 'fullscreen', 0).setOrigin(1, 0).setInteractive();
         this.buttonFullScreen.on('pointerup', () => { this.onToggleFullScreen(); }, this);
@@ -203,7 +204,8 @@ export class SceneMain extends Phaser.Scene {
                             text += `  ${this.bullets.poolInfo()}`;
                             text += `  ${this.enemyBullets.poolInfo()}`;
                             text += `\r\n`;
-                            text += `game.canvas=${this.sys.game.canvas.width}x${this.sys.game.canvas.height} `;
+                            text += `parent=${GameManager.getInstance().scaleParent.width}x${GameManager.getInstance().scaleParent.height} `;
+                            text += `sizer=${Math.round(GameManager.getInstance().scaleSizer.width)}x${Math.round(GameManager.getInstance().scaleSizer.height)} `;
                         }
                     }
                 }

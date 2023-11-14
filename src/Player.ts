@@ -102,6 +102,9 @@ export class Player extends Phaser.GameObjects.Container {
         // Update modules
         this.modules.update(time, delta);
 
+        // get the pointer position relative to the camera
+        const pointer = this.scene.input.activePointer.positionToCamera(this.scene.cameras.main) as Phaser.Math.Vector2;
+        // Update player position
         if (this.cursorKeys.left.isDown || this.keyLeft.isDown || this.keyLeft2.isDown
             || this.cursorKeys.right.isDown
             || this.cursorKeys.up.isDown || this.keyUp.isDown || this.keyUp2.isDown
@@ -109,20 +112,19 @@ export class Player extends Phaser.GameObjects.Container {
             || !this.scene.input.isOver) {
             this.inputIsKey = true;
         }
-        else if (this.inputPrecPointer.x != this.scene.input.activePointer.x
-            || this.inputPrecPointer.y != this.scene.input.activePointer.y) {
-            this.inputPrecPointer.x = this.scene.input.activePointer.x;
-            this.inputPrecPointer.y = this.scene.input.activePointer.y;
+        else if (this.inputPrecPointer.x != pointer.x
+            || this.inputPrecPointer.y != pointer.y) {
+            this.inputPrecPointer.x = pointer.x;
+            this.inputPrecPointer.y = pointer.y;
             this.inputIsKey = false;
         }
 
         let v = new Phaser.Math.Vector2(0, 0);
         if (!this.inputIsKey) {
-            const mouse = this.scene.input.activePointer;
             const playerRect = new Phaser.Geom.Rectangle(this.x - 8, this.y - 8, 16, 16);
             // if the mouse pointer is on the scene and not over the center ship, move the ship
-            if (!playerRect.contains(mouse.x, mouse.y)) {
-                const angle = Phaser.Math.Angle.Between(this.x, this.y, this.scene.input.activePointer.x, this.scene.input.activePointer.y);
+            if (!playerRect.contains(pointer.x, pointer.y)) {
+                const angle = Phaser.Math.Angle.Between(this.x, this.y, pointer.x, pointer.y);
                 v.x = Math.cos(angle) * this.speed;
                 v.y = Math.sin(angle) * this.speed;
             }

@@ -103,7 +103,8 @@ export class SceneShop extends Phaser.Scene {
     }
 
     // Move modules cursor with mouse
-    onPointerDown(pointer: Phaser.Input.Pointer) {
+    onPointerDown(unscaledPointer: Phaser.Input.Pointer) {
+        const pointer = unscaledPointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
         if (pointer.y > this.menuQuit.y + 20) {
             const size = GameManager.getInstance().moduleSize;
             const scale = GameManager.getInstance().playerScale;

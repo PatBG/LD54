@@ -14,6 +14,8 @@ export class SceneGameStart extends Phaser.Scene {
     }
 
     create() {
+        GameManager.getInstance().updateCamera();   // Hack because camera of inactives scenes is not updated
+
         this.textPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y - 200);
 
         this.add.text(this.textPos.x, this.textPos.y - 50, "Shoot'n Trade",
