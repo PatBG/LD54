@@ -16,11 +16,11 @@ export class SceneGameStart extends Phaser.Scene {
     create() {
         GameManager.getInstance().updateCamera();   // Hack because camera of inactives scenes is not updated
 
-        this.textPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y - 200);
+        this.textPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().rectMinGame.y + 50);
 
-        this.add.text(this.textPos.x, this.textPos.y - 50, "Shoot'n Trade",
+        this.add.text(this.textPos.x, this.textPos.y, "Shoot'n Trade",
             { font: '48px monospace', color: 'yellow' }).setOrigin(0.5);
-
+        this.textPos.y += 50;
         this.textColor = 'yellow';
         this.addText('Made by PatBG for LUDUM DARE #54 (October 2023)');
         this.addText('Theme: "Limited Space"');
@@ -31,8 +31,9 @@ export class SceneGameStart extends Phaser.Scene {
         this.addText('');
         this.addText('');
         this.textColor = 'aqua';
-        this.addText('Use the limited space of your ship to embark cannons, shields or merchandises.');
-        this.addText('Resell your merchandise farther to make profit and buy more space.');
+        this.addText('Use the limited space of your ship to embark cannons,');
+        this.addText('shields or merchandises. Resell your merchandise');
+        this.addText('farther to make profit and buy more space.');
         this.addText('');
         this.addText('[WASD, ZQSD, Arrow Keys or Mouse] to move ship');
         this.addText('[P] to pause or resume the game');

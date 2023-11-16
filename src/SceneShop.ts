@@ -36,11 +36,16 @@ export class SceneShop extends Phaser.Scene {
     }
 
     create() {
-        this.menuTextPos = new Phaser.Math.Vector2(100, 100);
-        this.cursorModule = new Phaser.Math.Vector2(0, 0);
+        GameManager.getInstance().updateCamera();   // Hack because camera of inactives scenes is not updated
 
-        this.add.text(GameManager.getInstance().canvasCenter.x, 70, 'SHOP',
+        this.cursorModule = new Phaser.Math.Vector2(0, 0);
+        this.menuTextPos = new Phaser.Math.Vector2(
+            GameManager.getInstance().rectMinGame.x + 20,
+            GameManager.getInstance().rectMinGame.y + 50);
+
+        this.add.text(GameManager.getInstance().canvasCenter.x, this.menuTextPos.y, 'SHOP',
             { font: '48px monospace', color: 'aqua' }).setOrigin(0.5);
+        this.menuTextPos.y += 50;
 
         this.menuMoney = this.addMenuText(`Money : ${GameManager.getInstance().money} $`);
         this.addMenuText('');
@@ -120,8 +125,9 @@ export class SceneShop extends Phaser.Scene {
     }
 
     addMenuText(text: string): Phaser.GameObjects.Text {
+        const textGameObject = this.add.text(this.menuTextPos.x, this.menuTextPos.y, text);
         this.menuTextPos.y += 20;
-        return this.add.text(this.menuTextPos.x, this.menuTextPos.y, text);
+        return textGameObject;
     }
 
     onBuyStructure() {
