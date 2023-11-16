@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { SceneMain } from './SceneMain';
 
 // GameStart -> Fight -> EndWave -> Shop -> Fight -> EndWave -> Shop -> Fight -> GameOver -> GameStart
 export enum GameState {
@@ -20,26 +21,23 @@ export class GameManager {
         return GameManager.instance;
     }
 
-    public scene: Phaser.Scene;
-
-    public canvasSize: Phaser.Math.Vector2;
-    public canvasCenter: Phaser.Math.Vector2;
-    public playerPosInShop: Phaser.Math.Vector2;
+    private sceneMain: SceneMain;
 
     scaleParent: Phaser.Structs.Size;
     scaleSizer: Phaser.Structs.Size;
+    scaleSizerPortrait: Phaser.Structs.Size;
+    scaleSizerLandscape: Phaser.Structs.Size;
 
     sizeMaxGame = new Phaser.Structs.Size(640, 1080);
-    sizePortraitGame = new Phaser.Structs.Size(512, 1080);
-    sizeLandscapeFullGame = new Phaser.Structs.Size(640, 720);
     rectMinGame = new Phaser.Geom.Rectangle(54, 180, 512, 720);
+    sizePortraitGame = new Phaser.Structs.Size(512, 1080);
+    sizeLandscapeGame = new Phaser.Structs.Size(640, 720);
+    rectCurrentGame: Phaser.Geom.Rectangle;
 
-    public updateCanvasSize(width: number, height: number) {
-        this.canvasSize = new Phaser.Math.Vector2(width, height);
-        this.canvasCenter = new Phaser.Math.Vector2(width / 2, height / 2);
-        this.playerPosInShop = new Phaser.Math.Vector2(
-            this.rectMinGame.x + this.rectMinGame.width / 2,
-            this.rectMinGame.y + this.rectMinGame.height - 150);    }
+    public canvasCenter = new Phaser.Math.Vector2(this.sizeMaxGame.width / 2, this.sizeMaxGame.height / 2);
+    public playerPosInShop = new Phaser.Math.Vector2(
+        this.rectMinGame.x + this.rectMinGame.width / 2,
+        this.rectMinGame.y + this.rectMinGame.height - 150);
 
     public wave = 0;
 
@@ -65,48 +63,84 @@ export class GameManager {
         return this.gameState;
     }
 
-    public initScaleSizer(scene: Phaser.Scene) {
-        this.scene = scene;
+    public initScaleSizer(scene: SceneMain) {
+        this.sceneMain = scene;
         this.scaleParent = new Phaser.Structs.Size(scene.scale.gameSize.width, scene.scale.gameSize.height);
-        this.scaleSizer = new Phaser.Structs.Size(this.sizeMaxGame.width, this.sizeMaxGame.height, Phaser.Structs.Size.FIT, this.scaleParent);
+        this.scaleSizerPortrait = new Phaser.Structs.Size(this.sizePortraitGame.width, this.sizePortraitGame.height, Phaser.Structs.Size.FIT, this.scaleParent);
+        this.scaleSizerLandscape = new Phaser.Structs.Size(this.sizeLandscapeGame.width, this.sizeLandscapeGame.height, Phaser.Structs.Size.FIT, this.scaleParent);
         this.resize(scene.scale.gameSize);
 
         scene.scale.on('resize', this.resize, this);
     }
 
-    resize(gameSize: Phaser.Structs.Size) {
+    private resize(gameSize: Phaser.Structs.Size) {
         const width = gameSize.width;
         const height = gameSize.height;
+
+        const ratioParent = width / height;
+        const ratioPortrait = this.sizePortraitGame.width / this.sizePortraitGame.height;
+        const ratioLandscape = this.sizeLandscapeGame.width / this.sizeLandscapeGame.height;
+        let debugText = "";
+        let sizeCurrentGame: Phaser.Structs.Size;
+        if (Math.abs(ratioParent - ratioPortrait) < Math.abs(ratioParent - ratioLandscape)) {
+            debugText += "(Portrait) ";
+            sizeCurrentGame = this.sizePortraitGame;
+            this.scaleSizer = this.scaleSizerPortrait;
+        }
+        else {
+            debugText += " (Landscape) ";
+            sizeCurrentGame = this.sizeLandscapeGame;
+            this.scaleSizer = this.scaleSizerLandscape;
+        }
+        this.rectCurrentGame = new Phaser.Geom.Rectangle(
+            (this.sizeMaxGame.width - sizeCurrentGame.width) / 2, 
+            (this.sizeMaxGame.height - sizeCurrentGame.height) / 2, 
+            sizeCurrentGame.width, 
+            sizeCurrentGame.height);
 
         this.scaleParent.setSize(width, height);
         this.scaleSizer.setSize(width, height);
 
-        console.log(`resize() :  gameSize=${width}x${height} sizer=${Math.round(this.scaleSizer.width)}x${Math.round(this.scaleSizer.height)}`);
+        this.cameraScaleX = this.scaleSizer.width / this.rectCurrentGame.width;
+        this.cameraScaleY = this.scaleSizer.height / this.rectCurrentGame.height;
+        console.log(
+            `resize() :  ` +
+            `scaleParent=${this.scaleParent.width}x${this.scaleParent.height} ` +
+            `scaleSizer=${Math.round(this.scaleSizer.width)}x${Math.round(this.scaleSizer.height)} ` +
+            `rectCurrentGame=${this.rectCurrentGame.width}x${this.rectCurrentGame.height} ` +
+            `cameraScale=${Phaser.Math.RoundTo(this.cameraScaleX, -2)}x${Phaser.Math.RoundTo(this.cameraScaleY, -2)} ` +
+            debugText);
 
         this.updateCamera();
-        this.updateCanvasSize(this.sizeMaxGame.width, this.sizeMaxGame.height);
+        this.sceneMain.updateResponsiveUI();
     }
 
-    updateCamera() {
-        const scaleX = this.scaleSizer.width / this.sizeMaxGame.width;
-        const scaleY = this.scaleSizer.height / this.sizeMaxGame.height;
+    cameraScaleX: number;
+    cameraScaleY: number;
 
-        const x = Math.ceil((this.scaleParent.width - this.scaleSizer.width) * 0.5);
-        const y = Math.ceil((this.scaleParent.height - this.scaleSizer.height) * 0.5);
+    public updateCamera() {
 
-        let debugText = `updateCamera() :  nb scenes=${this.scene.game.scene.scenes.length} `;
-        this.scene.game.scene.scenes.forEach((scene) => {
+        let debugText = "";
+        let iScene = 0;
+        this.sceneMain.game.scene.scenes.forEach((scene) => {
             const camera = scene.cameras.main;
             if (camera != undefined) {
-                debugText += " +";
-                camera.setViewport(x, y, this.scaleSizer.width, this.scaleSizer.height);
-                camera.setZoom(Math.max(scaleX, scaleY));
+                camera.setViewport(
+                    (this.scaleParent.width - this.scaleSizer.width) /2,
+                    (this.scaleParent.height - this.scaleSizer.height) /2,
+                    this.scaleSizer.width, 
+                    this.scaleSizer.height);
+                camera.setZoom(Math.max(this.cameraScaleX, this.cameraScaleY));
                 camera.centerOn(this.sizeMaxGame.width / 2, this.sizeMaxGame.height / 2);
             }
             else {
-                debugText += " -";
+                debugText += `scene[${iScene}] `;
             }
+            iScene++;
         })
-        console.log(debugText);
+
+        // if (debugText != "") {
+        //     console.log("updateCamera() missing " + debugText);
+        // }
     }
 }

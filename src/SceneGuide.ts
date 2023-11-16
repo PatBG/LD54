@@ -15,8 +15,8 @@ export class SceneGuide extends Phaser.Scene {
     }
 
     create() {
-        this.guide_640x720 = this.add.image(320, 540, 'guide_640x720').setDepth(1);
-        this.guide_512x1080 = this.add.image(320, 540, 'guide_512x1080').setDepth(1);
+        this.guide_640x720 = this.add.image(0, (1080 - 720) / 2, 'guide_640x720').setOrigin(0, 0).setDepth(1);
+        this.guide_512x1080 = this.add.image((640 - 512) / 2, 0, 'guide_512x1080').setOrigin(0, 0).setDepth(1);
         this.input.keyboard.addKey('x').on('down', () => { this.hackShowGuide(); });
     }
 

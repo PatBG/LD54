@@ -74,7 +74,9 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
         const marginY = 50;
         const marginX = 200;
         // Remove this enemy when it is offscreen on the side or bottom
-        if (this.x < 0 - marginX || this.x > GameManager.getInstance().canvasSize.x + marginX || this.y > GameManager.getInstance().canvasSize.y + marginY) {
+        if (this.x < 0 - marginX ||
+            this.x > GameManager.getInstance().sizeMaxGame.width + marginX ||
+            this.y > GameManager.getInstance().sizeMaxGame.height + marginY) {
             this.onDestroy();
         }
     }
@@ -134,14 +136,14 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
         if (this.waveEnemiesSpawned < this.waveTotalEnemies) {
             if (GameManager.getInstance().wave > 3 && this.rnd.between(0, 100 + GameManager.getInstance().wave) < GameManager.getInstance().wave) {
                 this.spawn(
-                    this.rnd.pick([-100, GameManager.getInstance().canvasSize.x + 100]),
+                    this.rnd.pick([-100, GameManager.getInstance().sizeMaxGame.width + 100]),
                     GameManager.getInstance().canvasCenter.y + this.rnd.between(-50, 50),
                     'enemy3');
                 this.waveEnemiesSpawned++;
             }
             else {
                 const firstEnemy = this.spawn(
-                    this.rnd.between(50, GameManager.getInstance().canvasSize.x - 50),
+                    this.rnd.between(50, GameManager.getInstance().sizeMaxGame.width - 50),
                     this.rnd.between(-100, -50),
                     this.rnd.pick([
                         'enemy1',

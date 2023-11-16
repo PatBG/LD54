@@ -40,13 +40,14 @@ export class SceneMain extends Phaser.Scene {
     create() {
         SoundManager.getInstance().create(this);
 
+        // These control are positioned according to the size of the game and updated on resize
+        this.buttonFullScreen = this.add.sprite(0, 0, 'fullscreen', 0).setOrigin(1, 0).setInteractive();
+        this.infoText = this.add.text(0, 0, '', { font: '12px monospace', color: 'white' });
+
         GameManager.getInstance().initScaleSizer(this);
 
-        this.buttonFullScreen = this.add.sprite(GameManager.getInstance().canvasSize.x - 16, 16, 'fullscreen', 0).setOrigin(1, 0).setInteractive();
         this.buttonFullScreen.on('pointerup', () => { this.onToggleFullScreen(); }, this);
         this.input.keyboard.addKey('F').on('down', () => { this.onToggleFullScreen(); }, this);
-
-        this.infoText = this.add.text(5, 5, '', { font: '12px monospace', color: 'white' });
 
         this.enemyBullets = this.add.existing(new Bullets(this.physics.world, this, { name: 'enemyBullets' }));
         this.enemyBullets.createMultiple({ key: 'enemyBullet', quantity: 100 });
@@ -126,6 +127,15 @@ export class SceneMain extends Phaser.Scene {
 
         // HACK: End the current wave with a key for testing
         this.input.keyboard.addKey('F9').on('down', () => { this.hackEndWave(); });
+    }
+
+    public updateResponsiveUI() {
+        this.buttonFullScreen.setPosition(
+            GameManager.getInstance().rectCurrentGame.x + GameManager.getInstance().rectCurrentGame.width - 5, 
+            GameManager.getInstance().rectCurrentGame.y + 5);
+        this.infoText.setPosition(
+            GameManager.getInstance().rectCurrentGame.x + 5, 
+            GameManager.getInstance().rectCurrentGame.y + 5);
     }
 
     onToggleFullScreen() {

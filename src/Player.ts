@@ -156,9 +156,13 @@ export class Player extends Phaser.GameObjects.Container {
         v.y *= delta / 1000;
 
         // Clamp screen bounds
-        const [minV,maxV] = this.modules.getModulesBounds();
-        this.x = Phaser.Math.Clamp(this.x + v.x, -minV.x, GameManager.getInstance().canvasSize.x - maxV.x);
-        this.y = Phaser.Math.Clamp(this.y + v.y, -minV.y, GameManager.getInstance().canvasSize.y - maxV.y);
+        const xLeft = GameManager.getInstance().rectCurrentGame.x;
+        const xRight = xLeft + GameManager.getInstance().rectCurrentGame.width;
+        const yTop = GameManager.getInstance().rectCurrentGame.y;
+        const yBottom = yTop + GameManager.getInstance().rectCurrentGame.height;
+        const [minModuleBound, maxModuleBound] = this.modules.getModulesBounds();
+        this.x = Phaser.Math.Clamp(this.x + v.x, xLeft - minModuleBound.x, xRight - maxModuleBound.x);
+        this.y = Phaser.Math.Clamp(this.y + v.y, yTop - minModuleBound.y, yBottom - maxModuleBound.y);
     }
 
     addNewStructure(x: number, y: number) {
