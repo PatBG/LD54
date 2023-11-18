@@ -3,6 +3,7 @@ import { GameState, GameManager } from './GameManager';
 import { Modules, ModuleType } from './Modules';
 import { Module } from './Module';
 import { Bullets } from './Bullets';
+import { PlayerFightControls } from './PlayerFightControls';
 
 
 export class Player extends Phaser.GameObjects.Container {
@@ -22,30 +23,18 @@ export class Player extends Phaser.GameObjects.Container {
     PlayerFire: Phaser.Sound.BaseSound;
     PlayerExplosion: Phaser.Sound.BaseSound;
 
-    keyLeft: Phaser.Input.Keyboard.Key;
-    keyLeft2: Phaser.Input.Keyboard.Key;
-    keyRight: Phaser.Input.Keyboard.Key;
-    keyUp: Phaser.Input.Keyboard.Key;
-    keyUp2: Phaser.Input.Keyboard.Key;
-    keyDown: Phaser.Input.Keyboard.Key;
+    playerFightControls: PlayerFightControls;
 
-    cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
 
     constructor(scene: Phaser.Scene, x: number, y: number, bullets: Bullets) {
         super(scene, x, y);
         this.bullets = bullets;
         Player.instance = this;
         scene.add.existing(this);
-        this.cursorKeys = this.scene.input.keyboard.createCursorKeys();
-
-        this.keyLeft = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-        this.keyLeft2 = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
-        this.keyRight = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-        this.keyUp = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-        this.keyUp2 = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-        this.keyDown = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
         this.modules = this.scene.add.existing(new Modules(this.scene.physics.world, this.scene, { name: 'modulesContainer' }, this.bullets));
+
+        this.playerFightControls = new PlayerFightControls(this.scene);
 
         GameManager.getInstance().onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
 
@@ -99,70 +88,25 @@ export class Player extends Phaser.GameObjects.Container {
             return;
         }
 
-        // Update modules
-        this.modules.update(time, delta);
+        // Get the normalized player movement
+        const v = this.playerFightControls.getNormalizedMovement(new Phaser.Math.Vector2(this.x, this.y));
 
-        // get the pointer position relative to the camera
-        const pointer = this.scene.input.activePointer.positionToCamera(this.scene.cameras.main) as Phaser.Math.Vector2;
-        // Update player position
-        if (this.cursorKeys.left.isDown || this.keyLeft.isDown || this.keyLeft2.isDown
-            || this.cursorKeys.right.isDown
-            || this.cursorKeys.up.isDown || this.keyUp.isDown || this.keyUp2.isDown
-            || this.cursorKeys.down.isDown
-            || !this.scene.input.isOver) {
-            this.inputIsKey = true;
-        }
-        else if (this.inputPrecPointer.x != pointer.x
-            || this.inputPrecPointer.y != pointer.y) {
-            this.inputPrecPointer.x = pointer.x;
-            this.inputPrecPointer.y = pointer.y;
-            this.inputIsKey = false;
-        }
+        // Convert normalized movement according to speed and delta time
+        v.x *= this.speed * delta / 1000;
+        v.y *= this.speed * delta / 1000;
 
-        let v = new Phaser.Math.Vector2(0, 0);
-        if (!this.inputIsKey) {
-            const playerRect = new Phaser.Geom.Rectangle(this.x - 8, this.y - 8, 16, 16);
-            // if the mouse pointer is on the scene and not over the center ship, move the ship
-            if (!playerRect.contains(pointer.x, pointer.y)) {
-                const angle = Phaser.Math.Angle.Between(this.x, this.y, pointer.x, pointer.y);
-                v.x = Math.cos(angle) * this.speed;
-                v.y = Math.sin(angle) * this.speed;
-            }
-        }
-        else {
-            if (this.keyLeft.isDown || this.keyLeft2.isDown || this.cursorKeys.left.isDown) {
-                v.x = -this.speed;
-            }
-            else if (this.keyRight.isDown || this.cursorKeys.right.isDown) {
-                v.x = this.speed;
-            }
-
-            if (this.keyUp.isDown || this.keyUp2.isDown || this.cursorKeys.up.isDown) {
-                v.y = -this.speed;
-            }
-            else if (this.keyDown.isDown || this.cursorKeys.down.isDown) {
-                v.y = this.speed;
-            }
-
-            // Diagonal movement : normalize speed
-            if (v.x !== 0 && v.y !== 0) {
-                v.x *= 0.7071;
-                v.y *= 0.7071;
-            }
-        }
-
-        // Convert speed to delta position
-        v.x *= delta / 1000;
-        v.y *= delta / 1000;
-
-        // Clamp screen bounds
+        // Compute screen bounds, taking modules bounds in account
         const xLeft = GameManager.getInstance().rectCurrentGame.x;
         const xRight = xLeft + GameManager.getInstance().rectCurrentGame.width;
         const yTop = GameManager.getInstance().rectCurrentGame.y;
         const yBottom = yTop + GameManager.getInstance().rectCurrentGame.height;
         const [minModuleBound, maxModuleBound] = this.modules.getModulesBounds();
+        // Update player position
         this.x = Phaser.Math.Clamp(this.x + v.x, xLeft - minModuleBound.x, xRight - maxModuleBound.x);
         this.y = Phaser.Math.Clamp(this.y + v.y, yTop - minModuleBound.y, yBottom - maxModuleBound.y);
+
+        // Update modules
+        this.modules.update(time, delta);
     }
 
     addNewStructure(x: number, y: number) {
