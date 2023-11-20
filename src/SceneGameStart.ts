@@ -32,10 +32,10 @@ export class SceneGameStart extends Phaser.Scene {
         this.addText('');
         this.textColor = 'aqua';
         this.addText('Use the limited space of your ship to embark cannons,');
-        this.addText('shields or merchandises. Resell your merchandise');
-        this.addText('farther to make profit and buy more space.');
+        this.addText('shields or merchandises. Resell your merchandises');
+        this.addText('farther to buy more space, shield, cannons...');
         this.addText('');
-        this.addText('[WASD, ZQSD, Arrow Keys or Mouse] to move ship');
+        this.addText('[WASD, ZQSD, Arrow Keys, Mouse or Swipe] to move ship');
         this.addText('[P] to pause or resume the game');
         this.addText('');
         this.addText('[Press any key] to start');
@@ -55,8 +55,7 @@ export class SceneGameStart extends Phaser.Scene {
     }
 
     onStart() {
-        // In localhost, admin mode is on by default, and off if the admin key is pressed.
-        GameManager.getInstance().adminMode = (window.location.href.indexOf("localhost") < 0) ? this.adminKey.isDown : !this.adminKey.isDown;
+        GameManager.getInstance().adminMode = GameManager.getInstance().adminMode || this.adminKey.isDown;
         GameManager.getInstance().setGameState(GameState.Fight);
         this.scene.stop();
     }
