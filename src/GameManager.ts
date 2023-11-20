@@ -44,7 +44,7 @@ export class GameManager {
     public money = 0;
     public moneyBonus = 0;
 
-    public adminMode = false;
+    public adminMode = window.location.href.indexOf("localhost") >= 0;      // Admin mode is on by default on localhost
 
     public moduleSize = new Phaser.Math.Vector2(32, 32);
     public playerScale = 1;
