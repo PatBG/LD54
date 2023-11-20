@@ -41,6 +41,41 @@ export class Player extends Phaser.GameObjects.Container {
         this.scale = GameManager.getInstance().playerScale;
     }
 
+    update(time, delta) {
+        if (GameManager.getInstance().getGameState() !== GameState.Fight) return;
+
+        if (this.modules.countActive() === 0) {
+            GameManager.getInstance().setGameState(GameState.GameOver);
+            return;
+        }
+
+        // Get the normalized player movement
+        const [move, maxDist] = this.playerFightControls.getNormalizedMovementSwipe(new Phaser.Math.Vector2(this.x, this.y));
+
+        // Convert normalized movement according to speed and delta time
+        move.x *= this.speed * delta / 1000;
+        move.y *= this.speed * delta / 1000;
+
+        const dist = Phaser.Math.Distance.Between(0, 0, move.x, move.y);
+        if (dist > maxDist) {
+            move.x /= dist / maxDist;
+            move.y /= dist / maxDist;
+        }
+
+        // Compute screen bounds, taking modules bounds in account
+        const xLeft = GameManager.getInstance().rectCurrentGame.x;
+        const xRight = xLeft + GameManager.getInstance().rectCurrentGame.width;
+        const yTop = GameManager.getInstance().rectCurrentGame.y;
+        const yBottom = yTop + GameManager.getInstance().rectCurrentGame.height;
+        const [minModuleBound, maxModuleBound] = this.modules.getModulesBounds();
+        // Update player position
+        this.x = Phaser.Math.Clamp(this.x + move.x, xLeft - minModuleBound.x, xRight - maxModuleBound.x);
+        this.y = Phaser.Math.Clamp(this.y + move.y, yTop - minModuleBound.y, yBottom - maxModuleBound.y);
+
+        // Update modules
+        this.modules.update(time, delta);
+    }
+
     onGameStateChange(state: GameState) {
         if (state === GameState.EndWave) {
             this.modules.onEndWave();
@@ -76,37 +111,6 @@ export class Player extends Phaser.GameObjects.Container {
             this.addNewModule(0, 1, ModuleType.Merchandise);
             this.addNewModule(1, 1, ModuleType.Defense);
         }
-    }
-
-    inputIsKey = true;
-    inputPrecPointer = new Phaser.Math.Vector2(0, 0);
-    update(time, delta) {
-        if (GameManager.getInstance().getGameState() !== GameState.Fight) return;
-
-        if (this.modules.countActive() === 0) {
-            GameManager.getInstance().setGameState(GameState.GameOver);
-            return;
-        }
-
-        // Get the normalized player movement
-        const v = this.playerFightControls.getNormalizedMovement(new Phaser.Math.Vector2(this.x, this.y));
-
-        // Convert normalized movement according to speed and delta time
-        v.x *= this.speed * delta / 1000;
-        v.y *= this.speed * delta / 1000;
-
-        // Compute screen bounds, taking modules bounds in account
-        const xLeft = GameManager.getInstance().rectCurrentGame.x;
-        const xRight = xLeft + GameManager.getInstance().rectCurrentGame.width;
-        const yTop = GameManager.getInstance().rectCurrentGame.y;
-        const yBottom = yTop + GameManager.getInstance().rectCurrentGame.height;
-        const [minModuleBound, maxModuleBound] = this.modules.getModulesBounds();
-        // Update player position
-        this.x = Phaser.Math.Clamp(this.x + v.x, xLeft - minModuleBound.x, xRight - maxModuleBound.x);
-        this.y = Phaser.Math.Clamp(this.y + v.y, yTop - minModuleBound.y, yBottom - maxModuleBound.y);
-
-        // Update modules
-        this.modules.update(time, delta);
     }
 
     addNewStructure(x: number, y: number) {
