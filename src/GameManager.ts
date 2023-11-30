@@ -29,7 +29,7 @@ export class GameManager {
     scaleSizerLandscape: Phaser.Structs.Size;
 
     sizeMaxGame = new Phaser.Structs.Size(640, 1080);
-    rectMinGame = new Phaser.Geom.Rectangle(54, 180, 512, 720);
+    rectMinGame = new Phaser.Geom.Rectangle(64, 180, 512, 720);
     sizePortraitGame = new Phaser.Structs.Size(512, 1080);
     sizeLandscapeGame = new Phaser.Structs.Size(640, 720);
     rectCurrentGame: Phaser.Geom.Rectangle;
@@ -47,7 +47,7 @@ export class GameManager {
     public adminMode = window.location.href.indexOf("localhost") >= 0;      // Admin mode is on by default on localhost
 
     public moduleSize = new Phaser.Math.Vector2(32, 32);
-    public playerScale = 1;
+    public playerScale = 0.75;
 
     // Game state
     private gameState: GameState = GameState.GameStart;
