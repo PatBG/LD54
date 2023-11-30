@@ -15,7 +15,7 @@ export class SceneGameOver extends Phaser.Scene {
 
         const startPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y - 48);
         let text = this.add.text(startPos.x, startPos.y, 'GAME OVER',
-            { font: '48px monospace', color: 'white' }).setOrigin(0.5);
+            { fontFamily: 'Arial Black', fontSize: 48, color: 'white' }).setOrigin(0.5);
 
         let factor = new Phaser.Math.Vector2(0, 0);
         this.tweens.add({
@@ -33,7 +33,7 @@ export class SceneGameOver extends Phaser.Scene {
             },
             onComplete: () => {
                 this.add.text(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().canvasCenter.y, '[any key] to continue',
-                    { font: '16px monospace', color: 'white' }).setOrigin(0.5);
+                    { fontFamily: 'Arial Black', fontSize: 16, color: 'white' }).setOrigin(0.5);
                 this.input.keyboard.on('keydown', () => { this.onStart(); });
                 this.input.on('pointerdown', () => { this.onStart(); });
             }

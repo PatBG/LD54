@@ -32,7 +32,7 @@ export class SceneMain extends Phaser.Scene {
         this.load.image('enemy3', 'assets/enemy3.png');
         this.load.image('enemyBullet', 'assets/enemyBullet.png');
 
-        this.load.spritesheet('fullscreen', 'assets/fullscreen.png', { frameWidth: 64, frameHeight: 64 });
+        this.load.spritesheet('fullscreen', 'assets/fullscreen.png', { frameWidth: 48, frameHeight: 48 });
 
         SoundManager.getInstance().preload(this);
     }
@@ -42,7 +42,7 @@ export class SceneMain extends Phaser.Scene {
 
         // These control are positioned according to the size of the game and updated on resize
         this.buttonFullScreen = this.add.sprite(0, 0, 'fullscreen', 0).setOrigin(1, 0).setInteractive();
-        this.infoText = this.add.text(0, 0, '', { font: '12px monospace', color: 'white' });
+        this.infoText = this.add.text(0, 0, '', { fontFamily: 'Arial Black', fontSize: 12, color: 'white' });
 
         GameManager.getInstance().initScaleSizer(this);
 

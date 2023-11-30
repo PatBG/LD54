@@ -19,7 +19,7 @@ export class SceneGameStart extends Phaser.Scene {
         this.textPos = new Phaser.Math.Vector2(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().rectMinGame.y + 50);
 
         this.add.text(this.textPos.x, this.textPos.y, "Shoot'n Trade",
-            { font: '48px monospace', color: 'yellow' }).setOrigin(0.5);
+            { fontFamily: 'Arial Black', fontSize: 48, color: 'yellow' }).setOrigin(0.5);
         this.textPos.y += 50;
         this.textColor = 'yellow';
         this.addText('Made by PatBG for LUDUM DARE #54 (October 2023)');
@@ -48,7 +48,7 @@ export class SceneGameStart extends Phaser.Scene {
     addText(text: string): Phaser.GameObjects.Text {
         this.textPos.y += 20;
         return this.add.text(this.textPos.x, this.textPos.y, text,
-            { font: '16px monospace', color: this.textColor }).setOrigin(0.5);
+            { fontFamily: 'Arial Black', fontSize: 14, color: this.textColor }).setOrigin(0.5);
     }
 
     update() {
