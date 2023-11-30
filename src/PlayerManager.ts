@@ -48,6 +48,10 @@ export class PlayerManager {
         return price;
     }
 
+    priceRotate(): number {
+        return 50;
+    }
+
     cannonFireRate(level: number): number {
         return 1 + level;
     }
