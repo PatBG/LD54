@@ -3,29 +3,29 @@ import { GameState, GameManager } from './GameManager';
 import { Player } from './Player';
 import { ModuleType } from './Modules';
 import { PlayerManager } from './PlayerManager';
+import { Button } from './Button';
 
 export class SceneShop extends Phaser.Scene {
 
     menuMoney: Phaser.GameObjects.Text;
-    menuBuyStructure: Phaser.GameObjects.Text;
-    menuBuyDefense: Phaser.GameObjects.Text;
-    menuBuyMerchandise: Phaser.GameObjects.Text;
-    menuBuyCannon: Phaser.GameObjects.Text;
-    menuRotate: Phaser.GameObjects.Text;
-    menuUpgrade: Phaser.GameObjects.Text;
-    menuSell: Phaser.GameObjects.Text;
-    menuQuit: Phaser.GameObjects.Text;
-    menuTextPos: Phaser.Math.Vector2;
 
-    readonly styleActiveColor = 'aqua';
-    readonly styleActive = { font: '16px monospace', color: this.styleActiveColor };
-    readonly styleGrayedColor = 'gray';
-    readonly styleGrayed = { font: '16px monospace', color: this.styleGrayedColor };
+    buttonBuyStructure: Button;
+    buttonBuyDefense: Button;
+    buttonBuyMerchandise: Button;
+    buttonBuyCannon: Button;
+    buttonRotate: Button;
+    buttonRotate2: Button;
+    buttonUpgrade: Button;
+    buttonSell: Button;
+    buttonQuit: Button;
 
     cursorModule: Phaser.Math.Vector2;
+    cursorMin = new Phaser.Math.Vector2(-9, -4);
+    cursorMax = new Phaser.Math.Vector2(9, 5);
     cursorImage: Phaser.GameObjects.Image;
 
     modifierKey: Phaser.Input.Keyboard.Key;
+    styleText: Phaser.Types.GameObjects.Text.TextStyle = { fontFamily: 'Arial Black', fontSize: 12, color: 'white' };
 
     constructor() {
         super({ key: 'SceneShop' });
@@ -33,55 +33,47 @@ export class SceneShop extends Phaser.Scene {
 
     preload() {
         this.load.image('cursor', 'assets/cursor.png');
+        this.load.spritesheet('buttons', 'assets/buttons.png', { frameWidth: 30, frameHeight: 30 });
     }
 
     create() {
         GameManager.getInstance().updateCamera();   // Hack because camera of inactives scenes is not updated
 
         this.cursorModule = new Phaser.Math.Vector2(0, 0);
-        this.menuTextPos = new Phaser.Math.Vector2(
-            GameManager.getInstance().rectMinGame.x + 20,
-            GameManager.getInstance().rectMinGame.y + 50);
 
-        this.add.text(GameManager.getInstance().canvasCenter.x, this.menuTextPos.y, 'SHOP',
-            { font: '48px monospace', color: 'aqua' }).setOrigin(0.5);
-        this.menuTextPos.y += 50;
+        this.add.text(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().rectMinGame.y + 50,
+            'SHOP', this.styleText).setFontSize(48).setOrigin(0.5);
 
-        this.menuMoney = this.addMenuText(`Money : ${GameManager.getInstance().money} $`);
-        this.addMenuText('');
-        this.menuMoney.setStyle(this.styleActive);
-        this.menuBuyStructure = this.addMenuText(`[T] buy structure : ${PlayerManager.getInstance().buyPriceStructure()} $`);
-        this.menuBuyDefense = this.addMenuText(`[D] buy Defense shield : ${PlayerManager.getInstance().buyPrice(ModuleType.Defense, 1)} $` +
-            ` (${this.actionDescription(ModuleType.Defense, 1)})`);
-        this.menuBuyMerchandise = this.addMenuText(`[M] buy Merchandise : ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, 1)} $` +
-            ` (${this.actionDescription(ModuleType.Merchandise, 1)})`);
-        this.menuBuyCannon = this.addMenuText(`[C] buy Cannon : ${PlayerManager.getInstance().buyPrice(ModuleType.Cannon, 1)} $` +
-            ` (${this.actionDescription(ModuleType.Cannon, 1)})`);
-        this.menuRotate = this.addMenuText(`[R] Rotate cannon (only if level 1, [SHIFT] + [R] turn the other way)`);
-        this.menuUpgrade = this.addMenuText(`[U] Upgrade`);
-        this.menuSell = this.addMenuText(`[S] Sell`);
-        this.addMenuText('');
-        this.addMenuText(`[Arrow Keys] to move the cursor around the modules`);
-        this.menuQuit = this.addMenuText(`[Q] quit the shop and start the next wave`);
-        this.menuQuit.setStyle(this.styleActive);
+        this.menuMoney = this.add.text(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().rectMinGame.y + 100,
+            `Money : ${GameManager.getInstance().money} $`, this.styleText).setOrigin(0.5);
 
-        this.menuBuyStructure.setInteractive().on('pointerdown', () => { this.onBuyStructure(); });
-        this.input.keyboard.addKey('T').on('down', () => { this.onBuyStructure(); });
-        this.menuBuyDefense.setInteractive().on('pointerdown', () => { this.onBuyModule(this.menuBuyDefense, ModuleType.Defense); });
-        this.input.keyboard.addKey('D').on('down', () => { this.onBuyModule(this.menuBuyDefense, ModuleType.Defense); });
-        this.menuBuyMerchandise.setInteractive().on('pointerdown', () => { this.onBuyModule(this.menuBuyMerchandise, ModuleType.Merchandise); });
-        this.input.keyboard.addKey('M').on('down', () => { this.onBuyModule(this.menuBuyMerchandise, ModuleType.Merchandise); });
-        this.menuBuyCannon.setInteractive().on('pointerdown', () => { this.onBuyModule(this.menuBuyCannon, ModuleType.Cannon); });
-        this.input.keyboard.addKey('C').on('down', () => { this.onBuyModule(this.menuBuyCannon, ModuleType.Cannon); });
-        this.menuRotate.setInteractive().on('pointerdown', () => { this.onRotateCannon(!this.modifierKey.isDown); });
+        this.buttonBuyStructure = this.addButtons(0, 0, `[T] buy structure ${PlayerManager.getInstance().buyPriceStructure()} $`,
+            'T', () => { this.onBuyStructure(); });
+        this.buttonBuyDefense = this.addButtons(1, 0, `[D] buy Defense shield ${PlayerManager.getInstance().buyPrice(ModuleType.Defense, 1)} $\r\n` +
+            `${this.actionDescription(ModuleType.Defense, 1)}`,
+            'D', () => { this.onBuyModule(this.buttonBuyDefense.isEnabled, ModuleType.Defense); });
+        this.buttonBuyMerchandise = this.addButtons(0, 1, `[M] buy Merchandise ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, 1)} $\r\n` +
+            `${this.actionDescription(ModuleType.Merchandise, 1)}`,
+            'M', () => { this.onBuyModule(this.buttonBuyMerchandise.isEnabled, ModuleType.Merchandise); });
+        this.buttonBuyCannon = this.addButtons(1, 1, `[C] buy Cannon ${PlayerManager.getInstance().buyPrice(ModuleType.Cannon, 1)} $\r\n` +
+            `${this.actionDescription(ModuleType.Cannon, 1)}`,
+            'C', () => { this.onBuyModule(this.buttonBuyCannon.isEnabled, ModuleType.Cannon); });
+        this.buttonRotate = this.addButtons(0, 2, `[R] Rotate cannon ${PlayerManager.getInstance().priceRotate()} $\r\nClockwise`,
+            '', () => { this.onRotateCannon(true); });
+        this.buttonRotate2 = this.addButtons(1, 2, `[Shift]+[R] Rotate cannon ${PlayerManager.getInstance().priceRotate()} $\r\nCounterclockwise`,
+            '', () => { this.onRotateCannon(false); });
         this.input.keyboard.addKey('R').on('down', () => { this.onRotateCannon(!this.modifierKey.isDown); });
-        this.menuUpgrade.setInteractive().on('pointerdown', () => { this.onUpgrade(); });
-        this.input.keyboard.addKey('U').on('down', () => { this.onUpgrade(); });
-        this.menuSell.setInteractive().on('pointerdown', () => { this.onSell(); });
-        this.input.keyboard.addKey('S').on('down', () => { this.onSell(); });
 
-        this.menuQuit.setInteractive().on('pointerdown', () => { this.onQuit(); });
-        this.input.keyboard.addKey('Q').on('down', () => { this.onQuit(); });
+        this.buttonUpgrade = this.addButtons(0, 3, `[U] Upgrade`,
+            'U', () => { this.onUpgrade(); });
+        this.buttonSell = this.addButtons(1, 3, `[S] Sell`,
+            'S', () => { this.onSell(); });
+
+        this.add.text(GameManager.getInstance().canvasCenter.x, GameManager.getInstance().rectMinGame.y + 430,
+            `[Arrow Keys] to move the cursor around the modules`, this.styleText).setOrigin(0.5);
+
+        this.buttonQuit = this.addButtons(0, 4, `[Q] quit the shop\r\nStart the next wave`,
+            'Q', () => { this.onQuit(); });
 
         this.input.keyboard.addKey('LEFT').on('down', () => { this.onMoveCursor(-1, 0); });
         this.input.keyboard.addKey('RIGHT').on('down', () => { this.onMoveCursor(1, 0); });
@@ -107,39 +99,51 @@ export class SceneShop extends Phaser.Scene {
         this.refreshMenu();
     }
 
+    addButtons(x: number, y: number, text: string, key: Phaser.Input.Keyboard.Key | string | number, fn: Function): Button {
+        this.input.keyboard.addKey(key).on('down', fn);
+        const button = new Button(this,
+            GameManager.getInstance().rectMinGame.x
+            + GameManager.getInstance().rectMinGame.width / 4
+            + GameManager.getInstance().rectMinGame.width / 2 * x,
+            GameManager.getInstance().rectMinGame.y
+            + 140 + 60 * y,
+            GameManager.getInstance().rectMinGame.width / 2 - 20,
+            50,
+            fn);
+        this.add.existing(button);
+        button.title = new Phaser.GameObjects.Text(this, 6, 6, text, this.styleText);
+        button.add(button.title);
+        return button;
+    }
+
     // Move modules cursor with mouse
     onPointerDown(unscaledPointer: Phaser.Input.Pointer) {
         const pointer = unscaledPointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
-        if (pointer.y > this.menuQuit.y + 20) {
-            const size = GameManager.getInstance().moduleSize;
-            const scale = GameManager.getInstance().playerScale;
-            const pos0 = GameManager.getInstance().playerPosInShop;
-            pointer.x += size.x * scale / 2;
-            pointer.y += size.y * scale / 2;
-            const x = Math.floor((pointer.x - pos0.x) / (size.x * scale));
-            const y = Math.floor((pointer.y - pos0.y) / (size.y * scale));
+        const size = GameManager.getInstance().moduleSize;
+        const scale = GameManager.getInstance().playerScale;
+        const pos0 = GameManager.getInstance().playerPosInShop;
+        pointer.x += size.x * scale / 2;
+        pointer.y += size.y * scale / 2;
+        const x = Math.floor((pointer.x - pos0.x) / (size.x * scale));
+        const y = Math.floor((pointer.y - pos0.y) / (size.y * scale));
+        this.cursorMin.x, this.cursorMax.x
+        if (x >= this.cursorMin.x && x <= this.cursorMax.x && y >= this.cursorMin.y && y <= this.cursorMax.y) {
             this.cursorModule.set(x, y);
             this.refreshCursor();
             this.refreshMenu();
         }
     }
 
-    addMenuText(text: string): Phaser.GameObjects.Text {
-        const textGameObject = this.add.text(this.menuTextPos.x, this.menuTextPos.y, text);
-        this.menuTextPos.y += 20;
-        return textGameObject;
-    }
-
     onBuyStructure() {
-        if (this.menuBuyStructure.style.color === this.styleActiveColor) {
+        if (this.buttonBuyStructure.isEnabled) {
             Player.getInstance().addNewStructure(this.cursorModule.x, this.cursorModule.y);
             GameManager.getInstance().money -= PlayerManager.getInstance().buyPriceStructure();
             this.refreshMenu();
         }
     }
 
-    onBuyModule(text: Phaser.GameObjects.Text, moduleType: ModuleType) {
-        if (text.style.color === this.styleActiveColor) {
+    onBuyModule(isEnabled: boolean, moduleType: ModuleType) {
+        if (isEnabled) {
             Player.getInstance().addNewModule(this.cursorModule.x, this.cursorModule.y, moduleType);
             GameManager.getInstance().money -= PlayerManager.getInstance().buyPrice(moduleType, 1);
             this.refreshMenu();
@@ -147,16 +151,18 @@ export class SceneShop extends Phaser.Scene {
     }
 
     onRotateCannon(isClockwise: boolean) {
-        if (this.menuRotate.style.color === this.styleActiveColor) {
+        if (this.buttonRotate.isEnabled) {
             const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined && module.moduleType === ModuleType.Cannon) {
+                GameManager.getInstance().money -= PlayerManager.getInstance().priceRotate();
+                this.refreshMenu();
                 module.addAngleCannon(isClockwise ? Math.PI / 8 : -Math.PI / 8);
             }
         }
     }
 
     onUpgrade() {
-        if (this.menuUpgrade.style.color === this.styleActiveColor) {
+        if (this.buttonUpgrade.isEnabled) {
             const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
             GameManager.getInstance().money -= PlayerManager.getInstance().priceUpgrade(module.moduleType, module.level);
             module.level++;
@@ -165,7 +171,7 @@ export class SceneShop extends Phaser.Scene {
     }
 
     onSell() {
-        if (this.menuSell.style.color === this.styleActiveColor) {
+        if (this.buttonSell.isEnabled) {
             const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
             if (module !== undefined) {
                 GameManager.getInstance().money += PlayerManager.getInstance().sellPrice(module.moduleType, module.level);
@@ -180,8 +186,8 @@ export class SceneShop extends Phaser.Scene {
     }
 
     onMoveCursor(x: number, y: number) {
-        this.cursorModule.x += x;
-        this.cursorModule.y += y;
+        this.cursorModule.x = Phaser.Math.Clamp(this.cursorModule.x + x, this.cursorMin.x, this.cursorMax.x);
+        this.cursorModule.y = Phaser.Math.Clamp(this.cursorModule.y + y, this.cursorMin.y, this.cursorMax.y);
         this.refreshCursor();
         this.refreshMenu();
     }
@@ -204,102 +210,103 @@ export class SceneShop extends Phaser.Scene {
         const module = Player.getInstance().getModule(this.cursorModule.x, this.cursorModule.y);
 
         // menuStructure
-        let style = this.styleGrayed;
+        let isEnabled = false;
         if (!isStructure) {
             if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPriceStructure()) {
                 for (let x = -1; x <= 1; x += 2) {
                     if (Player.getInstance().isStructure(this.cursorModule.x + x, this.cursorModule.y)) {
-                        style = this.styleActive;
+                        isEnabled = true;
                     }
                 }
                 for (let y = -1; y <= 2; y += 2) {
                     if (Player.getInstance().isStructure(this.cursorModule.x, this.cursorModule.y + y)) {
-                        style = this.styleActive;
+                        isEnabled = true;
                     }
                 }
             }
         }
-        this.menuBuyStructure.setStyle(style);
+        this.buttonBuyStructure.isEnabled = isEnabled;
 
         // menuDefense
-        style = this.styleGrayed;
+        isEnabled = false;
         if (isStructure && module === undefined) {
             if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPrice(ModuleType.Defense, 1)) {
-                style = this.styleActive;
+                isEnabled = true;
             }
         }
-        this.menuBuyDefense.setStyle(style);
+        this.buttonBuyDefense.isEnabled = isEnabled;
 
         // menuMerchandise
-        style = this.styleGrayed;
+        isEnabled = false;
         if (isStructure && module === undefined) {
             if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, 1)) {
-                style = this.styleActive;
+                isEnabled = true;
             }
         }
-        this.menuBuyMerchandise.setStyle(style);
+        this.buttonBuyMerchandise.isEnabled = isEnabled;
 
         // menuCannon
-        style = this.styleGrayed;
+        isEnabled = false;
         if (isStructure && module === undefined) {
             if (GameManager.getInstance().money >= PlayerManager.getInstance().buyPrice(ModuleType.Cannon, 1)) {
-                style = this.styleActive;
+                isEnabled = true;
             }
         }
-        this.menuBuyCannon.setStyle(style);
+        this.buttonBuyCannon.isEnabled = isEnabled;
 
         // menuRotate (only rotate cannon of level 1)
-        style = this.styleGrayed;
+        isEnabled = false;
         if (module != undefined && module.moduleType === ModuleType.Cannon) {
-            if (module.level === 1) {
-                style = this.styleActive;
+            if (GameManager.getInstance().money >= PlayerManager.getInstance().priceRotate()) {
+                isEnabled = true;
             }
         }
-        this.menuRotate.setStyle(style);
+        this.buttonRotate.isEnabled = isEnabled;
+        this.buttonRotate2.isEnabled = isEnabled;
 
         // menuUpgrade
-        style = this.styleGrayed;
+        isEnabled = false;
         let text = '[U] Upgrade';
         if (module != undefined) {
-            text += ` to level ${module.level + 1} : ${PlayerManager.getInstance().priceUpgrade(module.moduleType, module.level)} $`
-                + ` (${this.actionDescription(module.moduleType, module.level + 1)}) :`;
+            text += ` to level ${module.level + 1} : ${PlayerManager.getInstance().priceUpgrade(module.moduleType, module.level)} $\r\n`
+                + `${this.actionDescription(module.moduleType, module.level + 1)}`;
             if (GameManager.getInstance().money >= PlayerManager.getInstance().priceUpgrade(module.moduleType, module.level)) {
-                style = this.styleActive;
+                isEnabled = true;
             }
         }
-        this.menuUpgrade.setStyle(style);
-        this.menuUpgrade.text = text;
+        this.buttonUpgrade.isEnabled = isEnabled;
+        this.buttonUpgrade.title.text = text;
 
         // menuSell
-        style = this.styleGrayed;
+        isEnabled = false;
         text = '[S] Sell';
         if (module != undefined) {
             if (Player.getInstance().nbModule() <= 1) {
-                text += ` (you can't sell the last module)`;
+                text += `\r\nyou can't sell the last module`;
             }
             else {
-                style = this.styleActive;
+                isEnabled = true;
                 text += ` ${ModuleType[module.moduleType]} level ${module.level} :`
-                    + ` ${PlayerManager.getInstance().sellPrice(module.moduleType, module.level)} $`
-                    + ` (${this.actionDescription(module.moduleType, module.level)})`;
+                    + ` ${PlayerManager.getInstance().sellPrice(module.moduleType, module.level)} $\r\n`
+                    + `${this.actionDescription(module.moduleType, module.level)}`;
             }
         }
         else if (Player.getInstance().isStructure(this.cursorModule.x, this.cursorModule.y)) {
-            style = this.styleActive;
+            isEnabled = true;
             text += ` structure : ${PlayerManager.getInstance().sellPriceStructure()} $`;
         }
-        this.menuSell.setStyle(style);
-        this.menuSell.text = text;
+        this.buttonSell.isEnabled = isEnabled;
+        this.buttonSell.title.text = text;
     }
 
     actionDescription(moduleType: ModuleType, level: number): string {
         let text = '';
         switch (moduleType) {
             case ModuleType.Defense:
-                text = `absorb ${level} hits`;
+                text = `Absorb ${level} hits`;
                 break;
             case ModuleType.Merchandise:
-                text = `can be sold ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, level + 1)} $ next stage`;
+                text = `Can be sold ${PlayerManager.getInstance().buyPrice(ModuleType.Merchandise, level + 1)} $ next stage`;
                 break;
             case ModuleType.Cannon:
                 text = `${PlayerManager.getInstance().cannonFireRate(level)} bullets/sec`
@@ -310,6 +317,5 @@ export class SceneShop extends Phaser.Scene {
     }
 
     update() {
-        //this.refreshMenu();
     }
 }
