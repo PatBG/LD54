@@ -3,13 +3,6 @@ import { GameManager } from './GameManager';
 import { Bullets } from './Bullets';
 import { Module } from './Module';
 
-
-export enum ModuleType {
-    Merchandise = 1,
-    Cannon,
-    Defense,
-}
-
 export class Modules extends Phaser.Physics.Arcade.Group {
     bullets: Bullets;
 
