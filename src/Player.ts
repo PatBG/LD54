@@ -1,10 +1,9 @@
 import * as Phaser from 'phaser';
 import { GameState, GameManager } from './GameManager';
-import { Modules, ModuleType } from './Modules';
-import { Module } from './Module';
+import { Modules } from './Modules';
+import { Module, ModuleType } from './Module';
 import { Bullets } from './Bullets';
 import { PlayerFightControls } from './PlayerFightControls';
-
 
 export class Player extends Phaser.GameObjects.Container {
     private static instance: Player;
@@ -133,6 +132,27 @@ export class Player extends Phaser.GameObjects.Container {
         return structure;
     }
 
+    removeStructure(x: number, y: number): boolean {
+        const structure = this.getStructure(x, y);
+        if (structure !== undefined) {
+            this.remove(structure, true);
+            return true;
+        }
+        return false;
+    }
+
+    buyPriceStructure() : number {
+        return 50;
+    }
+
+    sellPriceStructure() : number {
+        return 25;
+    }
+
+    removeAllStructures() {
+        this.each((structure: Phaser.GameObjects.Sprite) => { this.remove(structure, true); }, this);
+    }
+
     addNewModule(x: number, y: number, moduleType: ModuleType) {
         return this.add(this.modules.newModule(x, y, moduleType));
     }
@@ -152,19 +172,6 @@ export class Player extends Phaser.GameObjects.Container {
 
     nbModule(): number {
         return this.modules.getLength();
-    }
-
-    removeStructure(x: number, y: number): boolean {
-        const structure = this.getStructure(x, y);
-        if (structure !== undefined) {
-            this.remove(structure, true);
-            return true;
-        }
-        return false;
-    }
-
-    removeAllStructures() {
-        this.each((structure: Phaser.GameObjects.Sprite) => { this.remove(structure, true); }, this);
     }
 
     getPosition(): Phaser.Math.Vector2 {
