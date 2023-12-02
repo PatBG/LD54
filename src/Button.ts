@@ -1,5 +1,4 @@
 import * as Phaser from 'phaser';
-import { GameManager } from './GameManager';
 
 export class Button extends Phaser.GameObjects.Container {
 

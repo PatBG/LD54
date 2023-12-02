@@ -1,6 +1,5 @@
 import * as Phaser from 'phaser';
 import { GameState, GameManager } from './GameManager';
-import { Vector } from 'matter';
 
 export class SceneGameOver extends Phaser.Scene {
     constructor() {
