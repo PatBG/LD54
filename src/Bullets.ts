@@ -1,6 +1,8 @@
 import * as Phaser from 'phaser';
+import { GameManager } from './GameManager';
 
-export class Bullet extends Phaser.Physics.Arcade.Image {
+export class Bullet extends Phaser.Physics.Arcade.Sprite {
+
     fire(x: number, y: number, vx: number, vy: number) {
         this.enableBody(true, x, y, true, true);
         this.setVelocity(vx, vy);
@@ -8,11 +10,15 @@ export class Bullet extends Phaser.Physics.Arcade.Image {
 
     onCreate() {
         this.disableBody(true, true);
-        this.setCollideWorldBounds(true, 1, 1, true);
     }
 
-    onWorldBounds() {
-        this.disableBody(true, true);
+    update (time, delta)
+    {
+        super.update(time, delta);
+        if (!GameManager.getInstance().rectCurrentGame.contains(this.x, this.y))
+        {
+            this.disableBody(true, true);
+        }
     }
 }
 
@@ -21,7 +27,7 @@ export class Bullets extends Phaser.Physics.Arcade.Group {
         super(
             world,
             scene,
-            { ...config, classType: Bullet, createCallback: Bullets.prototype.onCreate }
+            { ...config, classType: Bullet, createCallback: Bullets.prototype.onCreate, runChildUpdate: true }
         );
     }
 
