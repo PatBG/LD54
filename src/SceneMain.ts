@@ -2,10 +2,10 @@ import * as Phaser from 'phaser';
 import { GameState, GameManager } from './GameManager';
 import { Player } from './Player';
 import { Bullets, Bullet } from './Bullets';
-import { Enemies, Enemy } from './Enemies';
+import { Enemies } from './Enemies';
 import { SoundManager } from './SoundManager';
 import { Module } from './Module';
-import { PlayerManager } from './PlayerManager';
+import { Enemy } from './Enemy';
 
 export class SceneMain extends Phaser.Scene {
     player: Player;
@@ -120,6 +120,11 @@ export class SceneMain extends Phaser.Scene {
             }
         });
 
+        // Subscribe to resize event
+        GameManager.getInstance().onResize((rectCurrentGame: Phaser.Geom.Rectangle) => { this.onResize(rectCurrentGame); });
+        // Call to resize method initialize with current size
+        this.onResize(GameManager.getInstance().rectCurrentGame);
+
         GameManager.getInstance().onGameStateChange((state: GameState) => { this.onGameStateChange(state); });
         GameManager.getInstance().setGameState(GameState.GameStart);
 
@@ -129,13 +134,10 @@ export class SceneMain extends Phaser.Scene {
         this.input.keyboard.addKey('F9').on('down', () => { this.hackEndWave(); });
     }
 
-    public updateResponsiveUI() {
-        this.buttonFullScreen.setPosition(
-            GameManager.getInstance().rectCurrentGame.x + GameManager.getInstance().rectCurrentGame.width - 5, 
-            GameManager.getInstance().rectCurrentGame.y + 5);
-        this.infoText.setPosition(
-            GameManager.getInstance().rectCurrentGame.x + 5, 
-            GameManager.getInstance().rectCurrentGame.y + 5);
+    // Called when the game is resized for responsive UI
+    public onResize(rectCurrentGame: Phaser.Geom.Rectangle) {
+        this.buttonFullScreen.setPosition(rectCurrentGame.x + rectCurrentGame.width - 5, rectCurrentGame.y + 5);
+        this.infoText.setPosition(rectCurrentGame.x + 5, rectCurrentGame.y + 5);
     }
 
     onToggleFullScreen() {
@@ -167,7 +169,7 @@ export class SceneMain extends Phaser.Scene {
             this.scene.launch('SceneGameStart');
         }
         else if (state === GameState.Shop) {
-            const waveBonus = PlayerManager.getInstance().waveBonus(GameManager.getInstance().wave);
+            const waveBonus = GameManager.getInstance().waveBonus(GameManager.getInstance().wave);
             const text = `Wave: ${GameManager.getInstance().wave} completed ` +
                 `  Aliens bounty: ${GameManager.getInstance().moneyBonus} $` +
                 `  Wave bonus: ${waveBonus} $`;
