@@ -1,5 +1,4 @@
 import * as Phaser from 'phaser';
-import { SceneMain } from './SceneMain';
 
 // GameStart -> Fight -> EndWave -> Shop -> Fight -> EndWave -> Shop -> Fight -> GameOver -> GameStart
 export enum GameState {
@@ -21,7 +20,7 @@ export class GameManager {
         return GameManager.instance;
     }
 
-    private sceneMain: SceneMain;
+    private sceneMain: Phaser.Scene;
 
     scaleParent: Phaser.Structs.Size;
     scaleSizer: Phaser.Structs.Size;
@@ -39,7 +38,11 @@ export class GameManager {
         this.rectMinGame.x + this.rectMinGame.width / 2,
         this.rectMinGame.y + this.rectMinGame.height - 150);
 
+    // Waves data
     public wave = 0;
+    waveBonus(level: number): number {
+        return 100 + (level - 1) * 10;
+    }
 
     public money = 0;
     public moneyBonus = 0;
@@ -63,7 +66,7 @@ export class GameManager {
         return this.gameState;
     }
 
-    public initScaleSizer(scene: SceneMain) {
+    public initScaleSizer(scene: Phaser.Scene) {
         this.sceneMain = scene;
         this.scaleParent = new Phaser.Structs.Size(scene.scale.gameSize.width, scene.scale.gameSize.height);
         this.scaleSizerPortrait = new Phaser.Structs.Size(this.sizePortraitGame.width, this.sizePortraitGame.height, Phaser.Structs.Size.FIT, this.scaleParent);
@@ -112,7 +115,13 @@ export class GameManager {
             debugText);
 
         this.updateCamera();
-        this.sceneMain.updateResponsiveUI();
+        this.resizeEmitter.emit('change', this.rectCurrentGame);
+    }
+
+    // Resize event and notification
+    private resizeEmitter: Phaser.Events.EventEmitter = new Phaser.Events.EventEmitter();
+    public onResize(callback: (rectCurrentGame: Phaser.Geom.Rectangle) => void): void {
+        this.resizeEmitter.on('change', callback);
     }
 
     cameraScaleX: number;
