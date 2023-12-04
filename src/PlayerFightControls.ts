@@ -2,6 +2,9 @@ import * as Phaser from 'phaser';
 import { GameManager } from './GameManager';
 
 export class PlayerFightControls {
+
+    scene: Phaser.Scene;
+
     keyLeft: Phaser.Input.Keyboard.Key;
     keyLeft2: Phaser.Input.Keyboard.Key;
     keyRight: Phaser.Input.Keyboard.Key;
@@ -11,7 +14,10 @@ export class PlayerFightControls {
 
     cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
 
-    scene: Phaser.Scene;
+    inputIsKey = true;
+
+    inputPrecPointer = new Phaser.Math.Vector2(0, 0);
+    inputPrecPlayerPos = new Phaser.Math.Vector2(0, 0);
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -26,10 +32,7 @@ export class PlayerFightControls {
         this.keyDown = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     }
 
-    inputIsKey = true;
-    inputPrecPointer = new Phaser.Math.Vector2(0, 0);
-    inputPrecPlayerPos = new Phaser.Math.Vector2(0, 0);
-    public getNormalizedMovement(playerPos: Phaser.Math.Vector2): Phaser.Math.Vector2 {
+    public getNormalizedMovement(playerPos: Phaser.Math.Vector2): [Phaser.Math.Vector2, number] {
         // get the pointer position relative to the camera
         const pointer = this.scene.input.activePointer.positionToCamera(this.scene.cameras.main) as Phaser.Math.Vector2;
 
@@ -64,7 +67,7 @@ export class PlayerFightControls {
             }
         }
 
-        return move;
+        return [move, Infinity];
     }
 
     inputIsSwipe = false;
