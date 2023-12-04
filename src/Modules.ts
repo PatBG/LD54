@@ -56,11 +56,14 @@ export class Modules extends Phaser.Physics.Arcade.Group {
     getModulesBounds(): [Phaser.Math.Vector2, Phaser.Math.Vector2] {
         let minV = new Phaser.Math.Vector2(Infinity, Infinity);
         let maxV = new Phaser.Math.Vector2(-Infinity, -Infinity);
+        const moduleSizeX = GameManager.getInstance().moduleSize.x;
+        const moduleSizeY = GameManager.getInstance().moduleSize.y;
+        const playerScale = GameManager.getInstance().playerScale;
         this.children.iterate((module: Module) => {
-            minV.x = Math.min(minV.x, module.x - GameManager.getInstance().moduleSize.x / 2);
-            minV.y = Math.min(minV.y, module.y - GameManager.getInstance().moduleSize.y / 2);
-            maxV.x = Math.max(maxV.x, module.x + GameManager.getInstance().moduleSize.x / 2);
-            maxV.y = Math.max(maxV.y, module.y + GameManager.getInstance().moduleSize.y / 2);
+            minV.x = Math.min(minV.x, (module.x - moduleSizeX / 2) * playerScale);
+            maxV.x = Math.max(maxV.x, (module.x + moduleSizeX / 2) * playerScale);
+            minV.y = Math.min(minV.y, (module.y - moduleSizeY / 2) * playerScale);
+            maxV.y = Math.max(maxV.y, (module.y + moduleSizeY / 2) * playerScale);
             return true;
         }, this);
         return [minV, maxV];
