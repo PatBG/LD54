@@ -5,17 +5,20 @@ import { SoundManager } from './SoundManager';
 import { Player } from './Player';
 
 export class Enemy extends Phaser.Physics.Arcade.Image {
+    level = GameManager.getInstance().wave;
+    get bulletVelocity(): number { return Math.min(300 + 5 * this.level, 1000); }
+    get fireInterval(): number { return Math.max(1000 - 10 * this.level, 200); }
+    get shipVelocity(): number { return Math.min(200 + 5 * this.level, 500); }
+
     bullets: Bullets;
-    bulletVelocity = 300;
     timerFiring: Phaser.Time.TimerEvent;
     tweenMoving: Phaser.Tweens.Tween;
-    shipVelocity = 200;
 
     onCreate(bullets: Bullets) {
         this.name = `${this.texture.key} ${this.x} ${this.y})`;
         this.bullets = bullets;
         this.timerFiring = this.scene.time.addEvent({
-            delay: 750,
+            delay: this.fireInterval,
             loop: true,
             callback: () => { this.onFire(); },
         });
@@ -93,15 +96,17 @@ export class Enemy extends Phaser.Physics.Arcade.Image {
         if (this.texture.key === 'enemy3') {
             // Enemy fire at the player
             const rotation = Phaser.Math.Angle.BetweenPoints(this, Player.getInstance().getPosition());
-            v.x = Math.cos(rotation) * this.bulletVelocity;
-            v.y = Math.sin(rotation) * this.bulletVelocity;
+            v.x = Math.cos(rotation);
+            v.y = Math.sin(rotation);
         }
         else {
             // Enemy fire forward, according to its rotation
-            v.x = Math.cos(this.rotation + 0.5 * Math.PI) * this.bulletVelocity;
-            v.y = Math.sin(this.rotation + 0.5 * Math.PI) * this.bulletVelocity;
+            v.x = Math.cos(this.rotation + 0.5 * Math.PI);
+            v.y = Math.sin(this.rotation + 0.5 * Math.PI);
         }
-        this.bullets.fire(this.x, this.y, v.x, v.y);
+        v.x *= this.bulletVelocity;
+        v.y *= this.bulletVelocity;
+    this.bullets.fire(this.x, this.y, v.x, v.y);
         //SoundManager.getInstance().EnemyFire.play();      // Too much noise
     }
 

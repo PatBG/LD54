@@ -67,7 +67,7 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
             }
 
             // Recall this function until all enemies are spawned
-            this.scene.time.delayedCall(((1000 * 50) / (50 + GameManager.getInstance().wave)) + this.rnd.between(0, 1000),
+            this.scene.time.delayedCall(((2000 * 20) / (20 + GameManager.getInstance().wave)),
                 this.callbackSpawnEnemies, [], this);
         }
     }
@@ -76,7 +76,7 @@ export class Enemies extends Phaser.Physics.Arcade.Group {
         if (GameManager.getInstance().getGameState() === GameState.Fight) {
             // Start a new wave 
             this.rnd = new Phaser.Math.RandomDataGenerator([`${GameManager.getInstance().wave}`]);
-            this.waveTotalEnemies = 30 + GameManager.getInstance().wave * 3;
+            this.waveTotalEnemies = 20 + GameManager.getInstance().wave * 3;
             this.waveEnemiesSpawned = 0;
             this.callbackSpawnEnemies();
         }
