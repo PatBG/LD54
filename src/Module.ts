@@ -146,15 +146,15 @@ export class Module extends Phaser.Physics.Arcade.Sprite {
     }
 
     static priceRotate(): number {
-        return 50;
+        return 100;
     }
 
     static cannonFireRate(level: number): number {
-        return 1 + level;
+        return 1 + (0.5 * (level - 1));
     }
 
     static cannonBulletVelocity(level: number): number {
-        return 500 + 250 * Math.floor(level / 5);
+        return 400 + 100 * Math.floor(level / 5);
     }
 
 }
