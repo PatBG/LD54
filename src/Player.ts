@@ -14,7 +14,7 @@ export class Player extends Phaser.GameObjects.Container {
         return Player.instance;
     }
 
-    speed = 200;
+    speed = 300;
     modules: Modules;
     bullets: Bullets;
 
@@ -48,28 +48,35 @@ export class Player extends Phaser.GameObjects.Container {
             return;
         }
 
-        // Get the normalized player movement
-        const [move, maxDist] = this.playerFightControls.getNormalizedMovementSwipe(new Phaser.Math.Vector2(this.x, this.y));
+        // Get the normalized player movement (add vertical offset to prevent fingers from hiding the ship on the touchscreen)
+        // const [move, maxDist] = this.playerFightControls.getNormalizedMovementSwipe(new Phaser.Math.Vector2(this.x, this.y));
+        const [move, maxDist] = this.playerFightControls.getNormalizedMovement(
+            new Phaser.Math.Vector2(this.x, this.y + GameManager.getInstance().moduleSize.x * 2));
 
-        // Convert normalized movement according to speed and delta time
-        move.x *= this.speed * delta / 1000;
-        move.y *= this.speed * delta / 1000;
+        if (Math.abs(move.x) > 0 || Math.abs(move.y) > 0) {
+            // Convert normalized movement according to speed and delta time
+            move.x *= this.speed * delta / 1000;
+            move.y *= this.speed * delta / 1000;
 
-        const dist = Phaser.Math.Distance.Between(0, 0, move.x, move.y);
-        if (dist > maxDist) {
-            move.x /= dist / maxDist;
-            move.y /= dist / maxDist;
+            const dist = Phaser.Math.Distance.Between(0, 0, move.x, move.y);
+            if (dist > maxDist) {
+                move.x /= dist / maxDist;
+                move.y /= dist / maxDist;
+            }
+
+            // Compute screen bounds, taking modules bounds in account
+            const xLeft = GameManager.getInstance().rectCurrentGame.x;
+            const xRight = xLeft + GameManager.getInstance().rectCurrentGame.width;
+            const yTop = GameManager.getInstance().rectCurrentGame.y;
+            const yBottom = yTop + GameManager.getInstance().rectCurrentGame.height;
+            const [minModuleBound, maxModuleBound] = this.modules.getModulesBounds();
+            // Update player position
+            this.x = Phaser.Math.Clamp(this.x + move.x, xLeft - minModuleBound.x, xRight - maxModuleBound.x);
+            this.y = Phaser.Math.Clamp(this.y + move.y, yTop - minModuleBound.y, yBottom - maxModuleBound.y);
+            // console.log(`Player position: ${Math.round(this.x)}, ${Math.round(this.y)} ` +
+            //     `(xMin ${xLeft - minModuleBound.x}, xMax ${xRight - maxModuleBound.x}, ` +
+            //     `yMin ${yTop - minModuleBound.y}, yMax ${yBottom - maxModuleBound.y})`);
         }
-
-        // Compute screen bounds, taking modules bounds in account
-        const xLeft = GameManager.getInstance().rectCurrentGame.x;
-        const xRight = xLeft + GameManager.getInstance().rectCurrentGame.width;
-        const yTop = GameManager.getInstance().rectCurrentGame.y;
-        const yBottom = yTop + GameManager.getInstance().rectCurrentGame.height;
-        const [minModuleBound, maxModuleBound] = this.modules.getModulesBounds();
-        // Update player position
-        this.x = Phaser.Math.Clamp(this.x + move.x, xLeft - minModuleBound.x, xRight - maxModuleBound.x);
-        this.y = Phaser.Math.Clamp(this.y + move.y, yTop - minModuleBound.y, yBottom - maxModuleBound.y);
 
         // Update modules
         this.modules.update(time, delta);
@@ -141,11 +148,11 @@ export class Player extends Phaser.GameObjects.Container {
         return false;
     }
 
-    buyPriceStructure() : number {
+    buyPriceStructure(): number {
         return 50;
     }
 
-    sellPriceStructure() : number {
+    sellPriceStructure(): number {
         return 25;
     }
 
