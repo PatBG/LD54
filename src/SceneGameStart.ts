@@ -24,7 +24,7 @@ export class SceneGameStart extends Phaser.Scene {
         this.textColor = 'yellow';
         this.addText('Made by PatBG for LUDUM DARE #54 (October 2023)');
         this.addText('Theme: "Limited Space"');
-        this.addText('Post JAM version (November 1, 2023)');
+        this.addText('Post JAM version (December 4, 2023)');
         this.addText('');
         this.addText('Phaser 3, TypeScript, Visual Studio Code,');
         this.addText('with the help of Phaser 3 tutorials and GitHub Copilot');
@@ -42,7 +42,7 @@ export class SceneGameStart extends Phaser.Scene {
 
         this.input.keyboard.on('keydown', () => { this.onStart(); });
         this.input.on('pointerdown', () => { this.onStart(); });
-        this.adminKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F9);
+        this.adminKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F8);
     }
 
     addText(text: string): Phaser.GameObjects.Text {
@@ -56,6 +56,7 @@ export class SceneGameStart extends Phaser.Scene {
 
     onStart() {
         GameManager.getInstance().adminMode = GameManager.getInstance().adminMode || this.adminKey.isDown;
+        GameManager.getInstance().adminModeAllowed = GameManager.getInstance().adminMode;
         GameManager.getInstance().setGameState(GameState.Fight);
         this.scene.stop();
     }

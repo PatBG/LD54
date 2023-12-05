@@ -132,6 +132,12 @@ export class SceneMain extends Phaser.Scene {
 
         // HACK: End the current wave with a key for testing
         this.input.keyboard.addKey('F9').on('down', () => { this.hackEndWave(); });
+        // HACK: toggle admin mode if allowed
+        this.input.keyboard.addKey('F8').on('down', () => {
+            if (GameManager.getInstance().adminModeAllowed) {
+                GameManager.getInstance().adminMode = !GameManager.getInstance().adminMode;
+            }
+        });
     }
 
     // Called when the game is resized for responsive UI

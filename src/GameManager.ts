@@ -48,6 +48,7 @@ export class GameManager {
     public moneyBonus = 0;
 
     public adminMode = window.location.href.indexOf("localhost") >= 0;      // Admin mode is on by default on localhost
+    public adminModeAllowed = this.adminMode;                               // Admin mode is allowed if set at start (toggleable in game)
 
     public moduleSize = new Phaser.Math.Vector2(32, 32);
     public playerScale = 0.75;
