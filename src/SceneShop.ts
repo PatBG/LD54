@@ -24,7 +24,7 @@ export class SceneShop extends Phaser.Scene {
     cursorImage: Phaser.GameObjects.Image;
 
     modifierKey: Phaser.Input.Keyboard.Key;
-    styleText: Phaser.Types.GameObjects.Text.TextStyle = { fontFamily: 'Arial Black', fontSize: 12, color: 'white' };
+    styleText: Phaser.Types.GameObjects.Text.TextStyle = { fontFamily: 'Arial Black', fontSize: 14, color: 'white' };
 
     constructor() {
         super({ key: 'SceneShop' });
@@ -57,7 +57,7 @@ export class SceneShop extends Phaser.Scene {
         this.buttonBuyCannon = this.addButtons(1, 1, `[C] buy Cannon ${Module.buyPrice(ModuleType.Cannon, 1)} $\r\n` +
             `${this.actionDescription(ModuleType.Cannon, 1)}`,
             'C', () => { this.onBuyModule(this.buttonBuyCannon.isEnabled, ModuleType.Cannon); });
-        this.buttonRotate2 = this.addButtons(0, 2, `[Shift]+[R] Rotate cannon ${Module.priceRotate()} $\r\nCounterclockwise`,
+        this.buttonRotate2 = this.addButtons(0, 2, `[Shift+R] Rotate cannon ${Module.priceRotate()} $\r\nCounterclockwise`,
             '', () => { this.onRotateCannon(false); });
         this.buttonRotate = this.addButtons(1, 2, `[R] Rotate cannon ${Module.priceRotate()} $\r\nClockwise`,
             '', () => { this.onRotateCannon(true); });
@@ -106,7 +106,7 @@ export class SceneShop extends Phaser.Scene {
             + GameManager.getInstance().rectMinGame.width / 2 * x,
             GameManager.getInstance().rectMinGame.y
             + 140 + 60 * y,
-            GameManager.getInstance().rectMinGame.width / 2 - 20,
+            GameManager.getInstance().rectMinGame.width / 2 - 10,
             50,
             fn);
         this.add.existing(button);
@@ -281,7 +281,7 @@ export class SceneShop extends Phaser.Scene {
         text = '[S] Sell';
         if (module != undefined) {
             if (Player.getInstance().nbModule() <= 1) {
-                text += `\r\nyou can't sell the last module`;
+                text += `\r\nCan't sell last module`;
             }
             else {
                 isEnabled = true;
