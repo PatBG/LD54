@@ -19,8 +19,8 @@ export class Button extends Phaser.GameObjects.Container {
     }
 
     constructor(scene: Phaser.Scene, x: number, y: number, width: number, height: number, fn: Function) {
-        x += 7 - width / 2;
-        y += 7 - height / 2;
+        x -= width / 2;
+        y -= height / 2;
         super(scene, x, y);
         this.x0 = x;
         this.y0 = y;
