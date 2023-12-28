@@ -20,11 +20,12 @@ Use the limited space of your ship to embark cannons, shields or merchandises.
 Resell your merchandise after each wave to make profit and buy more space.
 
 [Use arrow keys or mouse] to move ship  
-[Use left shift or mouse button] to fire
 
 **Play in your web browser at Itch.io**: https://patbgames.itch.io/ld54-shoot-n-trade
 
-![Fight screenshot](./assets_sources/ld54-screenshot-fight1.png) 
+![Title screenshot](./assets_sources/Screenshots/20231205-ld54-screenshot-start.png) 
 
-![shop screenshop](./assets_sources/ld54-screenshot-shop.png) 
+![Fight screenshot](./assets_sources/Screenshots/20231207-ld54-screenshot-fight.png) 
+
+![shop screenshop](./assets_sources/Screenshots/20231207-ld54-screenshot-shop.png) 
 
