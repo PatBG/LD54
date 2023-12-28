@@ -6,6 +6,7 @@
 
 var ArcadeSprite = require('./ArcadeSprite');
 var Class = require('../../utils/Class');
+var CollisionComponent = require('./components/Collision');
 var CONST = require('./const');
 var GetFastValue = require('../../utils/object/GetFastValue');
 var Group = require('../../gameobjects/group/Group');
@@ -25,6 +26,8 @@ var IsPlainObject = require('../../utils/object/IsPlainObject');
  * @constructor
  * @since 3.0.0
  *
+ * @extends Phaser.Physics.Arcade.Components.Collision
+ *
  * @param {Phaser.Physics.Arcade.World} world - The physics simulation.
  * @param {Phaser.Scene} scene - The scene this group belongs to.
  * @param {(Phaser.GameObjects.GameObject[]|Phaser.Types.GameObjects.Group.GroupConfig|Phaser.Types.GameObjects.Group.GroupCreateConfig)} [children] - Game Objects to add to this group; or the `config` argument.
@@ -33,6 +36,10 @@ var IsPlainObject = require('../../utils/object/IsPlainObject');
 var StaticPhysicsGroup = new Class({
 
     Extends: Group,
+
+    Mixins: [
+        CollisionComponent
+    ],
 
     initialize:
 
@@ -99,6 +106,30 @@ var StaticPhysicsGroup = new Class({
          * @since 3.0.0
          */
         this.physicsType = CONST.STATIC_BODY;
+
+        /**
+         * The Arcade Physics Static Group Collision Category.
+         *
+         * This can be set to any valid collision bitfield value.
+         *
+         * See the `setCollisionCategory` method for more details.
+         *
+         * @name Phaser.Physics.Arcade.StaticGroup#collisionCategory
+         * @type {number}
+         * @since 3.70.0
+         */
+        this.collisionCategory = 0x0001;
+
+        /**
+         * The Arcade Physics Static Group Collision Mask.
+         *
+         * See the `setCollidesWith` method for more details.
+         *
+         * @name Phaser.Physics.Arcade.StaticGroup#collisionMask
+         * @type {number}
+         * @since 3.70.0
+         */
+        this.collisionMask = 1;
 
         Group.call(this, scene, children, config);
 

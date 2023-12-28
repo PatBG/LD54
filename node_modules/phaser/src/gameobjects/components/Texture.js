@@ -51,19 +51,25 @@ var Texture = {
      *
      * Textures are referenced by their string-based keys, as stored in the Texture Manager.
      *
+     * Calling this method will modify the `width` and `height` properties of your Game Object.
+     *
+     * It will also change the `origin` if the Frame has a custom pivot point, as exported from packages like Texture Packer.
+     *
      * @method Phaser.GameObjects.Components.Texture#setTexture
      * @since 3.0.0
      *
      * @param {(string|Phaser.Textures.Texture)} key - The key of the texture to be used, as stored in the Texture Manager, or a Texture instance.
      * @param {(string|number)} [frame] - The name or index of the frame within the Texture.
+     * @param {boolean} [updateSize=true] - Should this call adjust the size of the Game Object?
+     * @param {boolean} [updateOrigin=true] - Should this call change the origin of the Game Object?
      *
      * @return {this} This Game Object instance.
      */
-    setTexture: function (key, frame)
+    setTexture: function (key, frame, updateSize, updateOrigin)
     {
         this.texture = this.scene.sys.textures.get(key);
 
-        return this.setFrame(frame);
+        return this.setFrame(frame, updateSize, updateOrigin);
     },
 
     /**

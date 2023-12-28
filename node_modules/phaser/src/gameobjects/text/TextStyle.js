@@ -113,7 +113,7 @@ var TextStyle = new Class({
          * The text fill color.
          *
          * @name Phaser.GameObjects.TextStyle#color
-         * @type {string}
+         * @type {(string|CanvasGradient|CanvasPattern)}
          * @default '#fff'
          * @since 3.0.0
          */
@@ -123,7 +123,7 @@ var TextStyle = new Class({
          * The text stroke color.
          *
          * @name Phaser.GameObjects.TextStyle#stroke
-         * @type {string}
+         * @type {(string|CanvasGradient|CanvasPattern)}
          * @default '#fff'
          * @since 3.0.0
          */
@@ -735,7 +735,7 @@ var TextStyle = new Class({
      * @method Phaser.GameObjects.TextStyle#setFill
      * @since 3.0.0
      *
-     * @param {string} color - The text fill color.
+     * @param {(string|CanvasGradient|CanvasPattern)} color - The text fill color.
      *
      * @return {Phaser.GameObjects.Text} The parent Text object.
      */
@@ -752,7 +752,7 @@ var TextStyle = new Class({
      * @method Phaser.GameObjects.TextStyle#setColor
      * @since 3.0.0
      *
-     * @param {string} color - The text fill color.
+     * @param {(string|CanvasGradient|CanvasPattern)} color - The text fill color.
      *
      * @return {Phaser.GameObjects.Text} The parent Text object.
      */
@@ -766,9 +766,8 @@ var TextStyle = new Class({
     /**
      * Set the resolution used by the Text object.
      *
-     * By default it will be set to match the resolution set in the Game Config,
-     * but you can override it via this method. It allows for much clearer text on High DPI devices,
-     * at the cost of memory because it uses larger internal Canvas textures for the Text.
+     * It allows for much clearer text on High DPI devices, at the cost of memory because
+     * it uses larger internal Canvas textures for the Text.
      *
      * Please use with caution, as the more high res Text you have, the more memory it uses up.
      *
@@ -792,7 +791,7 @@ var TextStyle = new Class({
      * @method Phaser.GameObjects.TextStyle#setStroke
      * @since 3.0.0
      *
-     * @param {string} color - The stroke color.
+     * @param {(string|CanvasGradient|CanvasPattern)} color - The stroke color.
      * @param {number} thickness - The stroke thickness.
      *
      * @return {Phaser.GameObjects.Text} The parent Text object.
